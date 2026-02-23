@@ -23,14 +23,20 @@ model Product {
 }
 
 model Customer {
-  id        String    @id @default(cuid())
-  name      String
-  email     String    @unique
-  createdAt DateTime  @default(now())
+  id          String    @id @default(cuid())
+  name        String
+  email       String    @unique
+  createdAt   DateTime  @default(now())
+
+  sales       Sale[]
 }
 
 model Sale {
-  id        String    @id @default(cuid())
-  amount    Float
-  createdAt DateTime  @default(now())
+  id          String    @id @default(cuid())
+  amount      Float
+  status      String    @default("OTKAZANO") // PLACENO, CEKA, OTKAZANO
+  createdAt   DateTime  @default(now())
+  customerId  String
+
+  customer    Customer @relation(fields: [customerId], references: [id])
 }
