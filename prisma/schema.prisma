@@ -35,6 +35,7 @@ model Sale {
   id          String    @id @default(cuid())
   amount      Float
   status      String    @default("OTKAZANO") // PLACENO, CEKA, OTKAZANO
+  payMethod   String    @default("KEŠ")         // KARTICA, KEŠ, PAYPAL
   createdAt   DateTime  @default(now())
   customerId  String
 

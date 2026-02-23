@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableHeader, TableHead, TableRow, TableBody, TableCell } from "@/components/ui/table";
-import { DollarSign, Users, Package, Boxes } from "lucide-react";
+import { DollarSign, Users, Package, Boxes, CreditCard, Banknote, Wallet } from "lucide-react";
 import { LucideIcon } from 'lucide-react';
 import { db } from '@/lib/db';
 import { Product } from "@prisma/client"; // Definisemo tip producta iz client fajla
@@ -19,6 +19,7 @@ interface DetailedSaleItem {
     id: string;
     amount: number;
     status: string;
+    payMethod: string;
     createdAt: Date;
     customer: {
         name: string;
@@ -28,12 +29,42 @@ interface DetailedSaleItem {
 
 export default async function Home () {
     // Prva kartica
+    const now = new Date();
+    const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    
     const salesAggregation = await db.sale.aggregate({
         _sum: { amount: true }
     });
 
     const totalRevenue = salesAggregation._sum.amount || 0;
+
+    const thisMonthRevenue = await db.sale.aggregate({
+        _sum: { amount: true },
+        where: {
+            createdAt: { gte: startOfThisMonth }
+        }
+    });
+
+    const lastMonthRevenue = await db.sale.aggregate({
+        _sum: { amount: true },
+        where: {
+            createdAt: {
+                gte: startOfLastMonth,
+                lt: startOfThisMonth,
+            }
+        }
+    });
     
+    const current = thisMonthRevenue._sum.amount || 0;
+    const previous = lastMonthRevenue._sum.amount || 0;
+    
+    let percentageChange = 0;
+    if (previous > 0)
+        percentageChange = ((current - previous) / previous) * 100;
+    else if (current > 0 && previous === 0)
+        percentageChange = 100;
+
     // Druga kartica
     const customersCount = await db.customer.count();
     const startOfToday = new Date();
@@ -54,7 +85,7 @@ export default async function Home () {
     const totalValue = products.reduce((acc: number, product: Product) => acc + (product.price * product.stock), 0);
 
     const stats: StatItem[] = [
-        { label: "Ukupan Prihod", value: `${totalRevenue.toLocaleString()} €`, description: "+20% od prošlog meseca", icon: DollarSign, color: "text-emerald-500" },
+        { label: "Ukupan Prihod", value: `${totalRevenue.toLocaleString()} €`, description: `${percentageChange >= 0 ? "+" : ""}${percentageChange.toFixed(1)}% od prošlog meseca`, icon: DollarSign, color: "text-emerald-500" },
         { label: "Klijenti", value: customersCount.toLocaleString(), description: `+${newCustomersToday} novih danas`, icon: Users, color: "text-sky-500" },
         { label: "Proizvodi", value: productsCount.toLocaleString(), description: `${lowStockCount.toLocaleString()} na kritičnom stanju`, icon: Package, color: "text-orange-500" },
         { label: "Ukupna Vrednost", value: `${totalValue.toLocaleString()} €`, description: "Ukupna vrednost robe u magacinu", icon: Boxes, color: "text-blue-500" },
@@ -101,6 +132,7 @@ export default async function Home () {
         include: {
             customer: {
                 select: {
+                    id: true,
                     name: true,
                     email: true,
                 }
@@ -155,22 +187,63 @@ export default async function Home () {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Klijent</TableHead>
-                                    <TableHead>Email</TableHead>
-                                    <TableHead className="text-right">Iznos</TableHead>
-                                    <TableHead className="text-center">Status</TableHead>
-                                    <TableHead className="text-right">Datum</TableHead>
+                                    <TableHead className="w-50 text-center">ID Klijenta</TableHead>
+                                    <TableHead className="w-60 text-center">Klijent</TableHead>
+                                    <TableHead className="text-center">Email</TableHead>
+                                    <TableHead className="w-45 text-center">Iznos</TableHead>
+                                    <TableHead className="w-40 text-center">Status</TableHead>
+                                    <TableHead className="w-50 text-center">Metoda plaćanja</TableHead>
+                                    <TableHead className="w-50 text-center">Datum</TableHead>
                                 </TableRow>
                             </TableHeader>
 
                             <TableBody>
                                 {detailedSales.map(sale => (
-                                    <TableRow>
-                                        <TableCell>{sale.customer.name}</TableCell>
-                                        <TableCell>{sale.customer.email}</TableCell>
-                                        <TableCell>{sale.amount}</TableCell>
-                                        <TableCell>{sale.status}</TableCell>
-                                        <TableCell>{sale.createdAt.toString()}</TableCell>
+                                    <TableRow key={sale.id} className="hover:bg-slate-50/80 transition-colors">
+                                        <TableCell className="text-center">#{sale.id.slice(-6).toUpperCase()}</TableCell>
+                                        <TableCell className="font-bold text-center">{sale.customer.name}</TableCell>
+                                        <TableCell className="text-muted-foreground text-center">{sale.customer.email}</TableCell>
+                                        <TableCell className="font-semibold text-center">{sale.amount.toLocaleString()} €</TableCell>
+                                        <TableCell className="text-center">
+                                            { sale.status == "PLACENO" && (
+                                                <span className="bg-emerald-50 text-emerald-600 px-2 py-1 rounded text-xs font-semibold">✅ Plaćeno</span>
+                                            )}
+                                            {sale.status == "CEKA" && (
+                                                <span className="bg-amber-50 text-amber-600 px-2 py-1 rounded text-xs font-semibold">⏳ Čeka</span>
+                                            )}
+                                            {sale.status == "OTKAZANO" && (
+                                                <span className="bg-red-50 text-red-700 px-2 py-1 rounded text-xs font-semibold">❌ Otkazano</span>
+                                            )}
+                                        </TableCell>
+                                        <TableCell className="text-center">
+                                            { sale.payMethod == "KARTICA" && (
+                                                <div className="flex justify-center items-center gap-1.5 text-slate-700 px-2 py-1 rounded font-medium">
+                                                    <CreditCard className="h-3 w-3" />
+                                                    Kartica
+                                                </div>
+                                            )}
+                                            { sale.payMethod == "KEŠ" && (
+                                                <div className="flex justify-center items-center gap-1.5 text-slate-700 px-2 py-1 rounded font-medium">
+                                                    <Banknote className="h-3 w-3" />
+                                                    Keš
+                                                </div>
+                                            )}
+                                            { sale.payMethod == "PAYPAL" && (
+                                                <div className="flex justify-center items-center gap-1.5 text-slate-700 px-2 py-1 rounded font-medium">
+                                                    <Wallet className="h-3 w-3" />
+                                                    PayPal
+                                                </div>
+                                            )}
+                                        </TableCell>
+                                        <TableCell className="text-muted-foreground text-center">
+                                            { sale.createdAt.toLocaleDateString("sr-RS", {
+                                                day: "2-digit",
+                                                month: "short",
+                                                year: "numeric",
+                                                hour: "2-digit",
+                                                minute: "2-digit",
+                                            })}
+                                        </TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
