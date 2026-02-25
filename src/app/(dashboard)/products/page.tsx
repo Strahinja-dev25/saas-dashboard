@@ -4,10 +4,42 @@ import { db } from "@/lib/db";
 import Link from "next/link";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { deleteProduct } from "@/lib/actions";
+import { Search } from "@/components/products/search";
 
-export default async function ProductsPage() {
+interface PageProps {
+    searchParams: Promise<{ 
+        query?: string;
+        page?: string;
+    }>;
+}
+
+export default async function ProductsPage ({ searchParams }: PageProps) {
+    const { query, page } = await searchParams;
+
+    const ITEMS_PER_PAGE = 20;
+    const currentPage = Number(page) || 1;
+    const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+
+    const totalProductsCount = await db.product.count({
+        where: query ? {
+        OR: [
+            { name: { contains: query, mode: 'insensitive' } },
+            { category: { contains: query, mode: 'insensitive' } },
+        ]
+        } : {}
+    });
+    const totalPages = Math.ceil(totalProductsCount / ITEMS_PER_PAGE);
+
     const products = await db.product.findMany({
-        orderBy: { createdAt: 'desc' }
+        where: query ? {
+            OR: [
+                { name: { contains: query, mode: "insensitive" } },
+                { category: { contains: query, mode: "insensitive" } }
+            ],
+        } : {},
+        orderBy: { createdAt: 'desc' },
+        take: ITEMS_PER_PAGE,
+        skip: offset,
     });
 
     return (
@@ -17,6 +49,9 @@ export default async function ProductsPage() {
                     <h2 className="text-3xl font-bold tracking-tight">Proizvodi</h2>
                     <p className="text-muted-foreground">Upravljajte svojim inventarom ovde.</p>
                 </div>
+
+                <Search />
+
                 <Button asChild>
                     <Link href="/products/new">
                         <Plus className="h-4 w-4 mr-2" />
@@ -82,6 +117,32 @@ export default async function ProductsPage() {
                         )}
                     </TableBody>
                 </Table>
+            </div>
+
+            <div className="mt-4 flex items-center justify-center gap-2">
+                {currentPage <= 1 ? (
+                    <Button variant="outline" disabled>Prethodna</Button>
+                ) : (
+                    <Button variant="outline" asChild>
+                        <Link href={`?query=${query || ""}&page=${currentPage - 1}`}>
+                            Prethodna
+                        </Link>
+                    </Button>
+                )}
+
+                <span className="text-sm font-medium">
+                    Strana {currentPage} od {totalPages}
+                </span>
+
+                {currentPage >= totalPages ? (
+                    <Button variant="outline" disabled>Sledeća</Button>
+                ) : (
+                    <Button variant="outline" disabled={currentPage >= totalPages} asChild>
+                        <Link href={`?query=${query || ""}&page=${currentPage + 1}`}>
+                            Sledeća
+                        </Link>
+                    </Button>
+                )}
             </div>
         </div>
     );
