@@ -17,8 +17,8 @@ export function Navbar() {
                 </div>
 
                 <div className="flex items-center border-l pl-4">
-                    <Select defaultValue="bg">
-                        <SelectTrigger className="w-full max-w-50 border-none bg-slate-50 hover:bg-slate-100 transition focus:ring-0">
+                    <Select defaultValue="chi">
+                        <SelectTrigger className="w-full max-w-55 border-none bg-slate-50 hover:bg-slate-100 transition focus:ring-0">
                             <Store className="h-4 w-4 mr-2 text-sky-600" />
                             <div className="text-left overflow-hidden">
                                 <SelectValue placeholder="Lokacija" />
@@ -26,9 +26,9 @@ export function Navbar() {
                         </SelectTrigger>
 
                         <SelectContent>
-                            <SelectItem value="bg">Magacin Beograd</SelectItem>
-                            <SelectItem value="ns">Magacin Novi Sad</SelectItem>
-                            <SelectItem value="ni">Magacin Niš</SelectItem>
+                            <SelectItem value="chi">Chicago Terminal (HQ)</SelectItem>
+                            <SelectItem value="dal">Dallas Hub</SelectItem>
+                            <SelectItem value="atl">Atlanta Hub</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
@@ -37,7 +37,7 @@ export function Navbar() {
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
                         type="search"
-                        placeholder="Pretraži sistem..."
+                        placeholder="Search unit #, driver or load..."
                         className="pl-8 bg-slate-50 border-none focus-visible:ring-1 focus-visible:ring-sky-500 w-full"
                     />
                 </div>

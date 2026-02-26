@@ -5,47 +5,50 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
-const productSchema = z.object({
-  name: z.string().min(3),
-  price: z.coerce.number().min(0.01),
-  stock: z.coerce.number().int().min(0),
-  category: z.string().min(1),
+const truckSchema = z.object({
+  unitNumber: z.string().min(2),
+  driverName: z.string().min(2),
+  status: z.string(),
+  location: z.string().min(2),
+  destination: z.string().optional().nullable(),
+  equipmentType: z.string(),
+  hosRemaining: z.string(),
 });
 
-export async function createProduct (rawData: any) {
-    const validatedData = productSchema.parse(rawData);
+export async function createTruck (rawData: any) {
+    const validatedData = truckSchema.parse(rawData);
 
-    await db.product.create({
+    await db.truck.create({
         data: validatedData,
     });
 
-    revalidatePath("/products");
+    revalidatePath("/fleet");
     revalidatePath("/");
 
-    redirect("/products");
+    redirect("/fleet");
 }
 
-export async function deleteProduct (id: string) {
-    await db.product.delete({
+export async function deleteTruck (id: string) {
+    await db.truck.delete({
         where: {
             id: id,
         },
     });
 
-    revalidatePath("/products");
+    revalidatePath("/fleet");
     revalidatePath("/");
 }
 
-export async function updateProduct (id:string, rawData: any) {
-    const validatedData = productSchema.parse(rawData);
+export async function updateTruck (id:string, rawData: any) {
+    const validatedData = truckSchema.parse(rawData);
 
-    await db.product.update({
+    await db.truck.update({
         where: { id: id },
         data: validatedData,
     });
 
-    revalidatePath("/products");
+    revalidatePath("/fleet");
     revalidatePath("/");
 
-    redirect("/products");
+    redirect("/fleet");
 }

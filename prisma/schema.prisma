@@ -12,32 +12,35 @@ datasource db {
   provider = "postgresql"
 }
 
-model Product {
-  id          String   @id @default(cuid())
-  name        String
-  price       Float
-  stock       Int
-  category    String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+model Truck {
+  id              String     @id @default(cuid())
+  unitNumber      String     @unique // Truck 101
+  driverName      String
+  status          String     // IN_TRANSIT, AVAILABLE, MAINTENANCE, OUT_OF_SERVICE
+  location        String     // Chicago, IL
+  destination     String?    // Finalna destinacija kamiona
+  equipmentType   String     // Dry Van, Reefer, Flatbed
+  hosRemaining    String     // Hours of Service, "2h 15m"
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  
+  loads           Load[]
 }
 
-model Customer {
-  id          String    @id @default(cuid())
+model Driver {
+  id          String     @id @default(cuid())
   name        String
-  email       String    @unique
-  createdAt   DateTime  @default(now())
-
-  sales       Sale[]
+  email       String     @unique
+  eldStatus   String     @default("CONNECTED") // CONNECTED, DISCONNECTED
+  createdAt   DateTime   @default(now())
 }
 
-model Sale {
-  id          String    @id @default(cuid())
-  amount      Float
-  status      String    @default("OTKAZANO") // PLACENO, CEKA, OTKAZANO
-  payMethod   String    @default("KEŠ")         // KARTICA, KEŠ, PAYPAL
-  createdAt   DateTime  @default(now())
-  customerId  String
-
-  customer    Customer @relation(fields: [customerId], references: [id])
+model Load {
+  id          String     @id @default(cuid())
+  amount      Float      // Gross Revenue od ture
+  miles       Int        // Pređene milje na ovoj turi
+  createdAt   DateTime   @default(now())
+  
+  truckId     String?
+  truck       Truck?     @relation(fields: [truckId], references: [id])
 }

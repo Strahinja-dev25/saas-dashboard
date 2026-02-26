@@ -2,7 +2,6 @@
 
 import { Input } from "@/components/ui/input";
 import { SearchIcon } from "lucide-react";
-import { El_Messiri } from "next/font/google";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useDebouncedCallback } from "use-debounce";
 
@@ -26,7 +25,7 @@ export function Search () {
         <div className="max-w-200 relative flex flex-1 shrink-0">
             <SearchIcon className="absolute left-3 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-gray-500" />
             <Input
-                placeholder="Pretraži proizvode po nazivu ili kategoriji..."
+                placeholder="Search unit # or driver name..."
                 className="pl-10"
                 onChange={(e) => handleSearch(e.target.value)}
                 defaultValue={searchParams.get("query")?.toString()}

@@ -33,10 +33,10 @@ export function RevenueChart ({ data }: RevenueChartProps) {
                                 fontSize={12} 
                                 tickLine={false} 
                                 axisLine={false} 
-                                tickFormatter={(value) => `${value}€`} 
+                                tickFormatter={(value) => `${value} $`} 
                             />
                             <Tooltip
-                                formatter={(value: any) => [`${value.toLocaleString()}€`, "Prihod"]}
+                                formatter={(value: any) => [`${value.toLocaleString()}$`, "Prihod"]}
                                 contentStyle={{ backgroundColor: "white", borderRadius: "8px", border: "1px solid #e2e8f0", boxShadow: "4px 4px 6px -1px rgb(0 0 0 / 0.1)" }}
                             />
                             <Bar 
