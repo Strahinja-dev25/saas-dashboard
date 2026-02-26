@@ -4,6 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { deleteLoad } from "@/lib/actions";
+//import { Search } from "@/components/fleet/search";
 
 export default async function LoadsPage () {
     const loads = await db.load.findMany({

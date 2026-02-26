@@ -7,13 +7,13 @@ import { z } from "zod";
 
 // Truck services
 const truckSchema = z.object({
-  unitNumber: z.string().min(2),
-  driverName: z.string().min(2),
-  status: z.string(),
-  location: z.string().min(2),
-  destination: z.string().optional().nullable(),
-  equipmentType: z.string(),
-  hosRemaining: z.string(),
+    unitNumber: z.string().min(2),
+    driverName: z.string().min(2),
+    status: z.string(),
+    location: z.string().min(2),
+    destination: z.string().optional().nullable(),
+    equipmentType: z.string(),
+    hosRemaining: z.string(),
 });
 
 export async function createTruck (rawData: any) {
@@ -97,6 +97,46 @@ export async function updateLoad (id: string, rawData: any) {
 
     revalidatePath("/loads");
     revalidatePath("/");
+
+    redirect("/loads");
+}
+
+// Driver services
+const driverSchema = z.object({
+    name: z.string().min(2, "Name is required"),
+    email: z.email("Invalid email address"),
+    eldStatus: z.string(),
+});
+
+export async function createDriver (rawData: any) {
+    const validatedData = driverSchema.parse(rawData);
+
+    await db.driver.create({
+        data: validatedData,
+    });
+
+    revalidatePath("/drivers");
+
+    redirect("/drivers");
+}
+
+export async function deleteDriver (id: string) {
+    await db.driver.delete({ where: { id } });
+
+    revalidatePath("/drivers");
+}
+
+export async function updateDriver (id: string, rawData: any) {
+    const validatedData = loadSchema.parse(rawData);
+
+    await db.load.update({
+        where: {
+            id: id,
+        },
+        data: validatedData,
+    });
+
+    revalidatePath("/loads");
 
     redirect("/loads");
 }

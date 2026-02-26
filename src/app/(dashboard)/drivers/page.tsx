@@ -1,9 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Trash2, Pencil } from "lucide-react";
+import { Plus, Trash2, Pencil, UserCheck, UserX } from "lucide-react";
 import { db } from "@/lib/db";
 import Link from "next/link";
-import { deleteTruck } from "@/lib/actions";
+import { deleteDriver } from "@/lib/actions";
 import { Search } from "@/components/dashboard/search";
 
 interface PageProps {
@@ -13,51 +13,50 @@ interface PageProps {
     }>;
 }
 
-export default async function TrucksPage ({ searchParams }: PageProps) {
+export default async function DriversPage({ searchParams }: PageProps) {
     const { query, page } = await searchParams;
 
     const ITEMS_PER_PAGE = 20;
     const currentPage = Number(page) || 1;
     const offset = (currentPage - 1) * ITEMS_PER_PAGE;
 
-    const totalTrucksCount = await db.truck.count({
+    const totalDriversCount = await db.driver.count({
         where: query ? {
             OR: [
-                { unitNumber: { contains: query, mode: 'insensitive' as const } },
-                { driverName: { contains: query, mode: 'insensitive' as const } },
-                { location: { contains: query, mode: 'insensitive' as const } },
+                { name: { contains: query, mode: 'insensitive' as const } },
+                { email: { contains: query, mode: 'insensitive' as const } },
             ],
         } : {}
     });
-    const totalPages = Math.ceil(totalTrucksCount / ITEMS_PER_PAGE);
+    const totalPages = Math.ceil(totalDriversCount / ITEMS_PER_PAGE);
 
-    const trucks = await db.truck.findMany({
+    const drivers = await db.driver.findMany({
         where: query ? {
             OR: [
-                { unitNumber: { contains: query, mode: 'insensitive' as const } },
-                { driverName: { contains: query, mode: 'insensitive' as const } },
-                { location: { contains: query, mode: 'insensitive' as const } },
+                { name: { contains: query, mode: 'insensitive' as const } },
+                { email: { contains: query, mode: 'insensitive' as const } },
             ],
         } : {},
-        orderBy: { createdAt: 'desc' },
+        orderBy: { name: 'asc' },
         take: ITEMS_PER_PAGE,
         skip: offset,
     });
 
     return (
+        <>
         <div className="space-y-4">
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-3xl font-bold tracking-tight">Fleet Status</h2>
-                    <p className="text-muted-foreground">Manage your trucks and trailers here.</p>
+                    <h2 className="text-3xl font-bold tracking-tight">Drivers</h2>
+                    <p className="text-muted-foreground">Manage your fleet's drivers and ELD compliance.</p>
                 </div>
 
-                <Search placeholderName="Search unit # or driver name..." />
+                <Search placeholderName="Search drivers..." />
 
                 <Button asChild>
-                    <Link href="/fleet/new">
+                    <Link href="/drivers/new">
                         <Plus className="h-4 w-4 mr-2" />
-                        Add Unit
+                        Add Driver
                     </Link>
                 </Button>
             </div>
@@ -68,45 +67,43 @@ export default async function TrucksPage ({ searchParams }: PageProps) {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead className="w-40 text-center font-bold text-slate-700">Unit #</TableHead>
-                            <TableHead className="text-center font-bold text-slate-700">Driver</TableHead>
-                            <TableHead className="w-40 text-center font-bold text-slate-700">Status</TableHead>
-                            <TableHead className="text-center font-bold text-slate-700">Location</TableHead>
-                            <TableHead className="w-40 text-center font-bold text-slate-700">Equipment</TableHead>
-                            <TableHead className="w-30 text-center font-bold text-slate-700">Actions</TableHead>
+                            <TableHead className="w-40 text-center font-bold text-slate-700">Name</TableHead>
+                            <TableHead className="text-center font-bold text-slate-700">Email</TableHead>
+                            <TableHead className="w-40 text-center font-bold text-slate-700">ELD Status</TableHead>
+                            <TableHead className="text-center font-bold text-slate-700">Joined Date</TableHead>
+                            <TableHead className="w-40 text-center font-bold text-slate-700">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
 
                     <TableBody>
-                        {trucks.map((truck) => (
-                        <TableRow key={truck.id}>
-                            <TableCell className="text-center font-medium">{truck.unitNumber}</TableCell>
-                            <TableCell className="text-center">{truck.driverName}</TableCell>
+                        {drivers.map((driver) => (
+                        <TableRow key={driver.id}>
+                            <TableCell className="text-center font-medium">{driver.name}</TableCell>
+                            <TableCell className="text-center">{driver.email}</TableCell>
+                            
                             <TableCell className="text-center">
-                                {truck.status === "AVAILABLE" &&
-                                <span className="bg-blue-50 text-blue-600 px-2 py-1 rounded text-xs font-semibold">Available</span>}
-
-                                {truck.status === "IN_TRANSIT" &&
-                                <span className="bg-emerald-50 text-emerald-600 px-2 py-1 rounded text-xs font-semibold">In Transit</span>}
-
-                                {truck.status === "MAINTENANCE" &&
-                                <span className="bg-amber-50 text-amber-600 px-2 py-1 rounded text-xs font-semibold">Maintenance</span>}
-
-                                {truck.status === "OUT_OF_SERVICE" &&
-                                <span className="bg-red-50 text-red-700 px-2 py-1 rounded text-xs font-semibold">Out of Service</span>}
+                                {driver.eldStatus === "CONNECTED" ? (
+                                        <span className="flex items-center justify-center gap-1 text-emerald-600 text-xs font-bold bg-emerald-50 px-2 py-1 rounded border border-emerald-100 uppercase">
+                                            <UserCheck className="h-3 w-3" /> Connected
+                                        </span>
+                                    ) : (
+                                        <span className="flex items-center justify-center gap-1 text-red-600 text-xs font-bold bg-red-50 px-2 py-1 rounded border border-red-100 uppercase">
+                                            <UserX className="h-3 w-3" /> Disconnected
+                                        </span>
+                                    )}
                             </TableCell>
-                            <TableCell className="text-center">{truck.location}</TableCell>
-                            <TableCell className="text-center text-muted-foreground">{truck.equipmentType}</TableCell>
+
+                            <TableCell className="text-center">{new Date(driver.createdAt).toLocaleDateString()}</TableCell>
 
                             <TableCell className="text-right w-25">
                                 <div className="flex justify-end gap-2">
                                     <Button variant="ghost" size="icon" asChild>
-                                        <Link href={`/fleet/${truck.id}`}>
+                                        <Link href={`/drivers/${driver.id}`}>
                                             <Pencil className="w-4 h-4" />
                                         </Link>
                                     </Button>
 
-                                    <form action={deleteTruck.bind(null, truck.id)}>
+                                    <form action={deleteDriver.bind(null, driver.id)}>
                                         <Button variant="ghost" size="icon" className="text-red-600 hover:text-red-700 hover:bg-red-100">
                                             <Trash2 className="h-4 w-4" />
                                         </Button>
@@ -116,10 +113,10 @@ export default async function TrucksPage ({ searchParams }: PageProps) {
                         </TableRow>
                         ))}
 
-                        {trucks.length === 0 && (
+                        {drivers.length === 0 && (
                             <TableRow>
                                 <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
-                                    No trucks found.
+                                    No drivers found.
                                 </TableCell>
                             </TableRow>
                         )}
@@ -153,5 +150,6 @@ export default async function TrucksPage ({ searchParams }: PageProps) {
                 )}
             </div>
         </div>
+        </>
     );
 }
