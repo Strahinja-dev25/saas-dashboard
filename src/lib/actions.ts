@@ -4,12 +4,16 @@ import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { TruckStatus, LoadStatus } from "@prisma/client";
+
+// PRIVREMENO: Ovde staviti pravi ID firme iz baze
+const HARDCODED_COMPANY_ID = "cm7onawte2"; 
 
 // Truck services
 const truckSchema = z.object({
-    unitNumber: z.string().min(2),
-    driverName: z.string().min(2),
-    status: z.string(),
+    unitNumber: z.string().min(1, "Unit # is required"),
+    driverId: z.string().optional().or(z.literal("")), 
+    status: z.nativeEnum(TruckStatus),
     location: z.string().min(2),
     destination: z.string().optional().nullable(),
     equipmentType: z.string(),
@@ -20,7 +24,11 @@ export async function createTruck (rawData: any) {
     const validatedData = truckSchema.parse(rawData);
 
     await db.truck.create({
-        data: validatedData,
+        data: {
+            ...validatedData,
+            companyId: HARDCODED_COMPANY_ID,
+            driverId: validatedData.driverId || null, 
+        }
     });
 
     revalidatePath("/fleet");
@@ -45,7 +53,9 @@ export async function updateTruck (id:string, rawData: any) {
 
     await db.truck.update({
         where: { id: id },
-        data: validatedData,
+        data: {
+            ...validatedData,
+        }
     });
 
     revalidatePath("/fleet");
@@ -56,16 +66,21 @@ export async function updateTruck (id:string, rawData: any) {
 
 // Load services
 const loadSchema = z.object({
-    amount: z.coerce.number().min(1, "Amount must be at least $1"),
-    miles: z.coerce.number().int().min(1, "Miles must be at least 1"),
-    truckId: z.string().min(1, "Please select a truck"),
+    amount: z.coerce.number().min(1),
+    miles: z.coerce.number().int().min(1),
+    status: z.nativeEnum(LoadStatus),
+    truckId: z.string().optional().or(z.literal("unassigned")), 
 });
 
 export async function createLoad (rawData: any) {
     const validatedData = loadSchema.parse(rawData);
 
     await db.load.create({
-        data: validatedData,
+        data: {
+            ...validatedData,
+            companyId: HARDCODED_COMPANY_ID,
+            truckId: validatedData.truckId === "unassigned" ? null : validatedData.truckId,
+        }
     });
 
     revalidatePath("/loads");
@@ -103,8 +118,8 @@ export async function updateLoad (id: string, rawData: any) {
 
 // Driver services
 const driverSchema = z.object({
-    name: z.string().min(2, "Name is required"),
-    email: z.email("Invalid email address"),
+    name: z.string().min(2),
+    email: z.string().email(),
     eldStatus: z.string(),
 });
 
@@ -112,7 +127,10 @@ export async function createDriver (rawData: any) {
     const validatedData = driverSchema.parse(rawData);
 
     await db.driver.create({
-        data: validatedData,
+        data: {
+            ...validatedData,
+            companyId: HARDCODED_COMPANY_ID,
+        }
     });
 
     revalidatePath("/drivers");
@@ -127,16 +145,16 @@ export async function deleteDriver (id: string) {
 }
 
 export async function updateDriver (id: string, rawData: any) {
-    const validatedData = loadSchema.parse(rawData);
+    const validatedData = driverSchema.parse(rawData);
 
-    await db.load.update({
+    await db.driver.update({
         where: {
             id: id,
         },
         data: validatedData,
     });
 
-    revalidatePath("/loads");
+    revalidatePath("/drivers");
 
-    redirect("/loads");
+    redirect("/drivers");
 }

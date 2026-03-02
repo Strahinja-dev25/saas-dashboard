@@ -2,10 +2,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableHeader, TableHead, TableRow, TableBody, TableCell } from "@/components/ui/table";
 import { DollarSign, Truck, Map, Activity } from "lucide-react";
 import { LucideIcon } from 'lucide-react';
-import { db } from '@/lib/db';
-//import { Product } from "@prisma/client";
+import { getDashboardStats } from '@/lib/dashboard';
 import { RevenueChart } from "@/components/dashboard/revenue-chart";
-import { RecentLoads } from "@/components/dashboard/recent-loads";
+import { ActiveLoads } from "@/components/dashboard/active-loads";
+import { db } from "@/lib/db";
+import { LoadStatus } from "@prisma/client";
 
 interface StatItem {
     label: string;
@@ -19,36 +20,18 @@ interface DetailedLoadItem {
     id: string;
     amount: number;
     miles: number;
+    status: LoadStatus;
     createdAt: Date;
     truck: {
         unitNumber: string;
-        driverName: string;
+        driver: {
+            name: string;
+        } | null;
     } | null;
 };
 
 export default async function Home () {
-    // Prva kartica
-    const loadsAggregation = await db.load.aggregate({
-        _sum: { amount: true, miles: true }
-    });
-
-    const totalRevenue = loadsAggregation._sum.amount || 0;
-    const totalMiles = loadsAggregation._sum.miles || 0;
-
-    // Druga kartica
-    const activeTrucks = await db.truck.count({
-        where: { status: "IN_TRANSIT" }
-    });
-
-    const totalTrucks = await db.truck.count();
-
-    // Treca kartica
-    const rpm = totalMiles > 0 ? (totalRevenue / totalMiles) : 0;
-
-    // Cetvrta kartica
-    const pendingLoads = await db.load.count({
-        where: { truckId: null }
-    });
+    const { totalRevenue, activeTrucks, totalTrucks, pendingLoads, rpm } = await getDashboardStats();
 
     const stats: StatItem[] = [
         { 
@@ -84,6 +67,7 @@ export default async function Home () {
     // Za grafikon (Mesečna zarada od tura)
     const loadsForChart = await db.load.findMany({
         where: {
+            status: LoadStatus.DELIVERED,
             createdAt: {
                 gte: new Date(new Date().getFullYear(), 0, 1),
             }
@@ -98,32 +82,47 @@ export default async function Home () {
         graphData[month].total += load.amount;
     });
 
-    // Za listu poslednjih prodaja
-    const recentLoads = await db.load.findMany({
+    // Za listu aktivnih tura (PENDING i ASSIGNED)
+    const activeLoads = await db.load.findMany({
+        where: {
+            status: {
+                in: [LoadStatus.PENDING, LoadStatus.ASSIGNED],
+            },
+        },
         take: 5,
-        orderBy: { createdAt: "desc" },
+        orderBy: {
+            createdAt: "desc",
+        },
         include: {
             truck: {
-                select: {
-                    unitNumber: true,
-                    driverName: true,
+                include: {
+                    driver: {
+                        select: {
+                            name: true,
+                        },
+                    },
                 },
             },
         },
     });
 
-    // Za tabelu poslednjih 7 transakcija
+    // Za tabelu poslednjih 7 tura
     const detailedLoads: DetailedLoadItem[] = await db.load.findMany({
         take: 7,
         orderBy: { createdAt: "desc" },
-        include: {
+        select: {
+            id: true,
+            amount: true,
+            miles: true,
+            status: true,
+            createdAt: true,
             truck: {
                 select: {
                     unitNumber: true,
-                    driverName: true,
-                }
-            }
-        }
+                    driver: { select: { name: true } },
+                },
+            },
+        },
     });
 
     return (
@@ -152,11 +151,11 @@ export default async function Home () {
                 <div className="lg:col-span-4">
                     <Card className="h-full">
                         <CardHeader>
-                            <CardTitle>Recent Loads</CardTitle>
+                            <CardTitle>Active Loads</CardTitle>
                         </CardHeader>
 
                         <CardContent>
-                            <RecentLoads loads={recentLoads} />
+                            <ActiveLoads loads={activeLoads} />
                         </CardContent>
                     </Card>
                 </div>
@@ -165,8 +164,8 @@ export default async function Home () {
             <div className="grid gap-4 grid-cols-1">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Recent Dispatches</CardTitle>
-                        <p className="text-sm text-muted-foreground italic">Overview of the last 7 loads with mileage and revenue.</p>
+                        <CardTitle>Recent Loads</CardTitle>
+                        <p className="text-sm text-muted-foreground italic">Overview of the last 7 loads</p>
                     </CardHeader>
 
                     <CardContent>
@@ -174,12 +173,11 @@ export default async function Home () {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead className="w-30 text-center text-[11px] uppercase font-bold">Load ID</TableHead>
-                                    <TableHead className="text-left">Driver</TableHead>
-                                    <TableHead className="text-center">Unit #</TableHead>
-                                    <TableHead className="text-right">Miles</TableHead>
-                                    <TableHead className="text-right">Rate / Mile</TableHead>
-                                    <TableHead className="text-right">Gross Pay</TableHead>
-                                    <TableHead className="w-45 text-right">Date</TableHead>
+                                    <TableHead className="text-center">Driver</TableHead>
+                                    <TableHead className="text-center">Truck #</TableHead>
+                                    <TableHead className="text-center">Status</TableHead>
+                                    <TableHead className="text-center">Amount</TableHead>
+                                    <TableHead className="w-45 text-center">Date</TableHead>
                                 </TableRow>
                             </TableHeader>
 
@@ -192,14 +190,18 @@ export default async function Home () {
                                             <TableCell className="text-center">#{load.id.slice(-6).toUpperCase()}</TableCell>
                                             
                                             <TableCell className="font-bold text-center">
-                                                {load.truck ? load.truck.driverName : <span className="text-amber-500">Unassigned</span>}
+                                                {load.truck?.driver?.name || <span className="text-amber-500">Unassigned</span>}
                                             </TableCell>
                                             
-                                            <TableCell className="text-muted-foreground text-center">{load.truck ? load.truck.unitNumber : "-"}</TableCell>
-                                            <TableCell className="font-semibold text-center">{load.miles} mi</TableCell>
+                                            <TableCell className="text-muted-foreground text-center">{load.truck?.unitNumber || "-"}</TableCell>
+
+                                            <TableCell className="font-semibold text-center">
+                                                {load.status === LoadStatus.DELIVERED && <span className="text-emerald-500">Delivered</span>}
+                                                {load.status === LoadStatus.ASSIGNED && <span className="text-sky-500">Assigned</span>}
+                                                {load.status === LoadStatus.PENDING && <span className="text-amber-500">Pending</span>}
+                                            </TableCell>
                                             
-                                            <TableCell className="text-center">${rpm}</TableCell>
-                                            <TableCell className="text-center">${load.amount.toLocaleString()}</TableCell>
+                                            <TableCell className="text-center">{load.amount.toLocaleString("en-US", { style: "currency", currency: "USD" })}</TableCell>
                                             
                                             <TableCell className="text-muted-foreground text-center">
                                                 {new Date(load.createdAt).toLocaleDateString("en-US", {

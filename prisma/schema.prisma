@@ -12,35 +12,98 @@ datasource db {
   provider = "postgresql"
 }
 
-model Truck {
-  id              String     @id @default(cuid())
-  unitNumber      String     @unique // Truck 101
-  driverName      String
-  status          String     // IN_TRANSIT, AVAILABLE, MAINTENANCE, OUT_OF_SERVICE
-  location        String     // Chicago, IL
-  destination     String?    // Finalna destinacija kamiona
-  equipmentType   String     // Dry Van, Reefer, Flatbed
-  hosRemaining    String     // Hours of Service, "2h 15m"
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
-  
+
+enum UserRole {
+  ADMIN       // Owner ili glavni admin firme
+  DISPATCHER  // Dispatch-uje ture i upravlja kamionima
+  DRIVER      // Samo vidi svoje ture i status
+}
+
+enum TruckStatus {
+  AVAILABLE
+  IN_TRANSIT
+  MAINTENANCE
+  OUT_OF_SERVICE
+}
+
+enum LoadStatus {
+  PENDING      // Kreirana, ali još nije dispatchovana
+  ASSIGNED     // Dodeljena truck-u
+  IN_TRANSIT
+  DELIVERED
+  CANCELLED
+}
+
+
+model Company {
+  id              String    @id @default(cuid())
+  name            String
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  users           User[]
+  trucks          Truck[]
+  drivers         Driver[]
   loads           Load[]
 }
 
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  name            String?
+  role            UserRole  @default(DISPATCHER)
+
+  companyId       String
+  company         Company   @relation(fields: [companyId], references: [id])
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Truck {
+  id              String       @id @default(cuid())
+  unitNumber      String       @unique // Truck 101
+  status          TruckStatus  @default(AVAILABLE)    // IN_TRANSIT, AVAILABLE, MAINTENANCE, OUT_OF_SERVICE
+  location        String
+  destination     String?             // Finalna destinacija kamiona
+  equipmentType   String              // Dry Van, Reefer, Flatbed
+  hosRemaining    String              // Hours of Service, "2h 15m"
+
+  companyId       String
+  company         Company     @relation(fields: [companyId], references: [id])
+  driverId        String?
+  driver          Driver?     @relation(fields: [driverId], references: [id])
+  loads           Load[]
+
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+}
+
 model Driver {
-  id          String     @id @default(cuid())
-  name        String
-  email       String     @unique
-  eldStatus   String     @default("CONNECTED") // CONNECTED, DISCONNECTED
-  createdAt   DateTime   @default(now())
+  id            String     @id @default(cuid())
+  name          String
+  email         String     @unique
+  eldStatus     String     @default("CONNECTED") // CONNECTED, DISCONNECTED
+
+  companyId     String
+  company       Company    @relation(fields: [companyId], references: [id])
+  trucks        Truck[]
+
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
 }
 
 model Load {
-  id          String     @id @default(cuid())
+  id          String      @id @default(cuid())
   amount      Float      // Gross Revenue od ture
   miles       Int        // Pređene milje na ovoj turi
-  createdAt   DateTime   @default(now())
-  
+  status      LoadStatus  @default(PENDING)
+
   truckId     String?
-  truck       Truck?     @relation(fields: [truckId], references: [id])
+  truck       Truck?      @relation(fields: [truckId], references: [id])
+  companyId   String
+  company     Company     @relation(fields: [companyId], references: [id])
+
+  createdAt   DateTime    @default(now())
+  updatedAt DateTime      @updatedAt
 }
