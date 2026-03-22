@@ -1,20 +1,9 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Truck } from 'lucide-react';
-
-interface Load {
-  id: string;
-  amount: number;
-  createdAt: Date;
-  truck: {
-    unitNumber: string;
-    driver: {
-        name: string;
-    } | null;
-  } | null;
-}
+import { ActiveLoadDashboardItem } from "@/types/index";
 
 interface ActiveLoadsProps {
-  loads: Load[];
+  loads: ActiveLoadDashboardItem[];
 }
 
 export function ActiveLoads ({ loads }: ActiveLoadsProps) {

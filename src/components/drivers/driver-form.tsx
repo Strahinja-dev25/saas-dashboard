@@ -11,13 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { Driver } from "@prisma/client";
 import { createDriver, updateDriver } from "@/lib/actions";
-import { z } from "zod";
-
-const driverSchema = z.object({
-    name: z.string().min(3, "Name is required (min 3 chars)"),
-    email: z.email("Invalid email address"),
-    eldStatus: z.string().min(1, "Status is required"),
-});
+import { driverSchema } from "@/lib/schemas/index";
 
 interface DriverFormProps {
     initialData?: Driver | null;

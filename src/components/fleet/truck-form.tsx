@@ -9,18 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-import { Truck } from "@prisma/client";
+import { Truck, TruckStatus } from "@prisma/client";
 import { createTruck, updateTruck } from "@/lib/actions";
-import { z } from "zod";
-
-const truckSchema = z.object({
-  unitNumber: z.string().min(2, "Unit number must be at least 2 characters"),
-  driverName: z.string().min(2, "Driver name is required"),
-  status: z.string().min(1, "Status is required"),
-  location: z.string().min(2, "Location is required"),
-  equipmentType: z.string().min(1, "Equipment type is required"),
-  hosRemaining: z.string().min(1, "HOS is required"),
-});
+import { truckSchema } from "@/lib/schemas/index";
 
 interface TruckFormProps {
     initialData?: Truck | null;
@@ -30,11 +21,9 @@ export function TruckForm({ initialData }: TruckFormProps) {
     const router = useRouter();
     const [formData, setFormData] = useState({
         unitNumber: initialData?.unitNumber || "",
-        driverName: initialData?.driverName || "",
-        status: initialData?.status || "",
+        status: initialData?.status || "AVAILABLE",
         location: initialData?.location || "",
-        equipmentType: initialData?.equipmentType || "",
-        hosRemaining: initialData?.hosRemaining || "",
+        equipmentType: initialData?.equipmentType || "Dry Van",
     });
 
     const [error, setError] = useState<string | null>(null);
@@ -57,11 +46,10 @@ export function TruckForm({ initialData }: TruckFormProps) {
         }
 
         try {
-            if (initialData) {
+            if (initialData)
                 await updateTruck(initialData.id, result.data);
-            } else {
+            else
                 await createTruck(result.data);
-            }
         } catch (err) {
             setError("Something went wrong while saving.");
         } finally {
@@ -78,7 +66,7 @@ export function TruckForm({ initialData }: TruckFormProps) {
             <Card>
                 <CardHeader>
                     <CardTitle>
-                        {initialData ? `Edit Unit: ${formData.unitNumber}` : "Add New Unit"}
+                        {initialData ? `Edit Unit: ${formData.unitNumber}` : "Register New Unit"}
                     </CardTitle>
                 </CardHeader>
                 
@@ -90,7 +78,7 @@ export function TruckForm({ initialData }: TruckFormProps) {
                             </div>
                         )}
 
-                        { /* 1. Unit Number and Driver Name */ }
+                        { /* 1. Unit Number & Status */ }
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="unitNumber">Unit #</Label>
@@ -101,18 +89,23 @@ export function TruckForm({ initialData }: TruckFormProps) {
                                     disabled={isPending}
                                 />
                             </div>
+
                             <div className="space-y-2">
-                                <Label htmlFor="driverName">Driver Name</Label>
-                                <Input 
-                                    id="driverName" placeholder="e.g. John Doe" 
-                                    value={formData.driverName}
-                                    onChange={(e) => setFormData({ ...formData, driverName: e.target.value })}
-                                    disabled={isPending}
-                                />
+                                <Label>Status</Label>
+                                <Select value={formData.status} onValueChange={(val) => setFormData({ ...formData, status: val as TruckStatus })} disabled={isPending}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select status" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="AVAILABLE">Available</SelectItem>
+                                        <SelectItem value="MAINTENANCE">Maintenance</SelectItem>
+                                        <SelectItem value="OUT_OF_SERVICE">Out of Service</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </div>
                         </div>
                         
-                        { /* 2. Location and HOS */ }
+                        { /* 2. Location & Equipment */ }
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="location">Current Location</Label>
@@ -123,31 +116,7 @@ export function TruckForm({ initialData }: TruckFormProps) {
                                     disabled={isPending}
                                 />
                             </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="hosRemaining">HOS Remaining</Label>
-                                <Input 
-                                    id="hosRemaining" placeholder="e.g. 5h 30m" 
-                                    value={formData.hosRemaining}
-                                    onChange={(e) => setFormData({ ...formData, hosRemaining: e.target.value })}
-                                    disabled={isPending}
-                                />
-                            </div>
-                        </div>
 
-                        { /* Status and Equipment Type */ }
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label>Status</Label>
-                                <Select value={formData.status} onValueChange={(val) => setFormData({ ...formData, status: val })} disabled={isPending}>
-                                    <SelectTrigger><SelectValue placeholder="Select status" /></SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="AVAILABLE">Available</SelectItem>
-                                        <SelectItem value="IN_TRANSIT">In Transit</SelectItem>
-                                        <SelectItem value="MAINTENANCE">Maintenance</SelectItem>
-                                        <SelectItem value="OUT_OF_SERVICE">Out of Service</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
                             <div className="space-y-2">
                                 <Label>Equipment Type</Label>
                                 <Select value={formData.equipmentType} onValueChange={(val) => setFormData({ ...formData, equipmentType: val })} disabled={isPending}>
@@ -165,7 +134,7 @@ export function TruckForm({ initialData }: TruckFormProps) {
                             {isPending ? (
                                 <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</>
                             ) : (
-                                initialData ? "Save Changes" : "Add Unit"
+                                initialData ? "Save Changes" : "Register Unit"
                             )}
                         </Button>
                     </form>

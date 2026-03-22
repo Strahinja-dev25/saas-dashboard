@@ -1,37 +1,15 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableHeader, TableHead, TableRow, TableBody, TableCell } from "@/components/ui/table";
 import { DollarSign, Truck, Map, Activity } from "lucide-react";
-import { LucideIcon } from 'lucide-react';
-import { getDashboardStats } from '@/lib/dashboard';
+
+import { DashboardService } from '@/services/dashboard-service';
 import { RevenueChart } from "@/components/dashboard/revenue-chart";
 import { ActiveLoads } from "@/components/dashboard/active-loads";
-import { db } from "@/lib/db";
-import { LoadStatus } from "@prisma/client";
-
-interface StatItem {
-    label: string;
-    value: string;
-    description: string;
-    icon: LucideIcon;
-    color: string;
-};
-
-interface DetailedLoadItem {
-    id: string;
-    amount: number;
-    miles: number;
-    status: LoadStatus;
-    createdAt: Date;
-    truck: {
-        unitNumber: string;
-        driver: {
-            name: string;
-        } | null;
-    } | null;
-};
+import { StatItem, DetailedLoadItem } from "@/types/index";
 
 export default async function Home () {
-    const { totalRevenue, activeTrucks, totalTrucks, pendingLoads, rpm } = await getDashboardStats();
+    // Za 4 kartice
+    const { totalRevenue, activeTrucks, totalTrucks, pendingLoads, rpm } = await DashboardService.getStats();
 
     const stats: StatItem[] = [
         { 
@@ -65,65 +43,13 @@ export default async function Home () {
     ];
 
     // Za grafikon (Mesečna zarada od tura)
-    const loadsForChart = await db.load.findMany({
-        where: {
-            status: LoadStatus.DELIVERED,
-            createdAt: {
-                gte: new Date(new Date().getFullYear(), 0, 1),
-            }
-        }
-    });
-
-    const monthNames = ["Jan", "Feb", "Mar", "Apr", "Maj", "Jun", "Jul", "Avg", "Sep", "Okt", "Nov", "Dec"];
-    const graphData = monthNames.map(name => ({ name, total: 0 }));
-
-    loadsForChart.forEach(load => {
-        const month = load.createdAt.getMonth();
-        graphData[month].total += load.amount;
-    });
+    const graphData = await DashboardService.getChartData();
 
     // Za listu aktivnih tura (PENDING i ASSIGNED)
-    const activeLoads = await db.load.findMany({
-        where: {
-            status: {
-                in: [LoadStatus.PENDING, LoadStatus.ASSIGNED],
-            },
-        },
-        take: 5,
-        orderBy: {
-            createdAt: "desc",
-        },
-        include: {
-            truck: {
-                include: {
-                    driver: {
-                        select: {
-                            name: true,
-                        },
-                    },
-                },
-            },
-        },
-    });
+    const activeLoads = await DashboardService.getActiveLoadsList();
 
     // Za tabelu poslednjih 7 tura
-    const detailedLoads: DetailedLoadItem[] = await db.load.findMany({
-        take: 7,
-        orderBy: { createdAt: "desc" },
-        select: {
-            id: true,
-            amount: true,
-            miles: true,
-            status: true,
-            createdAt: true,
-            truck: {
-                select: {
-                    unitNumber: true,
-                    driver: { select: { name: true } },
-                },
-            },
-        },
-    });
+    const detailedLoads: DetailedLoadItem[] = await DashboardService.getRecentTransactions();
 
     return (
         <div className="space-y-4">
@@ -196,9 +122,9 @@ export default async function Home () {
                                             <TableCell className="text-muted-foreground text-center">{load.truck?.unitNumber || "-"}</TableCell>
 
                                             <TableCell className="font-semibold text-center">
-                                                {load.status === LoadStatus.DELIVERED && <span className="text-emerald-500">Delivered</span>}
-                                                {load.status === LoadStatus.ASSIGNED && <span className="text-sky-500">Assigned</span>}
-                                                {load.status === LoadStatus.PENDING && <span className="text-amber-500">Pending</span>}
+                                                {load.status === "DELIVERED" && <span className="text-emerald-500">Delivered</span>}
+                                                {load.status === "ASSIGNED" && <span className="text-sky-500">Assigned</span>}
+                                                {load.status === "PENDING" && <span className="text-amber-500">Pending</span>}
                                             </TableCell>
                                             
                                             <TableCell className="text-center">{load.amount.toLocaleString("en-US", { style: "currency", currency: "USD" })}</TableCell>

@@ -1,10 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Trash2, Pencil } from "lucide-react";
-import { db } from "@/lib/db";
+
 import Link from "next/link";
 import { deleteTruck } from "@/lib/actions";
 import { Search } from "@/components/dashboard/search";
+import { AssignDriverModal } from "@/components/fleet/assign-driver-modal";
+import { TruckService } from "@/services/fleet/truck-service";
+import { DriverService } from "@/services/drivers/driver-service";
 
 interface PageProps {
     searchParams: Promise<{ 
@@ -13,36 +16,15 @@ interface PageProps {
     }>;
 }
 
-export default async function TrucksPage ({ searchParams }: PageProps) {
-    const { query, page } = await searchParams;
-
+export default async function FleetPage ({ searchParams }: PageProps) {
     const ITEMS_PER_PAGE = 20;
-    const currentPage = Number(page) || 1;
-    const offset = (currentPage - 1) * ITEMS_PER_PAGE;
 
-    const totalTrucksCount = await db.truck.count({
-        where: query ? {
-            OR: [
-                { unitNumber: { contains: query, mode: 'insensitive' as const } },
-                { driverName: { contains: query, mode: 'insensitive' as const } },
-                { location: { contains: query, mode: 'insensitive' as const } },
-            ],
-        } : {}
-    });
-    const totalPages = Math.ceil(totalTrucksCount / ITEMS_PER_PAGE);
+    const params = await searchParams;
+    const query = params.query || "";
+    const currentPage = Number(params.page) || 1;
 
-    const trucks = await db.truck.findMany({
-        where: query ? {
-            OR: [
-                { unitNumber: { contains: query, mode: 'insensitive' as const } },
-                { driverName: { contains: query, mode: 'insensitive' as const } },
-                { location: { contains: query, mode: 'insensitive' as const } },
-            ],
-        } : {},
-        orderBy: { createdAt: 'desc' },
-        take: ITEMS_PER_PAGE,
-        skip: offset,
-    });
+    const { trucks, totalPages } = await TruckService.getFleet(query, currentPage, ITEMS_PER_PAGE);
+    const allDrivers = await DriverService.getDriversForAssignment();
 
     return (
         <div className="space-y-4">
@@ -78,43 +60,74 @@ export default async function TrucksPage ({ searchParams }: PageProps) {
                     </TableHeader>
 
                     <TableBody>
-                        {trucks.map((truck) => (
-                        <TableRow key={truck.id}>
-                            <TableCell className="text-center font-medium">{truck.unitNumber}</TableCell>
-                            <TableCell className="text-center">{truck.driverName}</TableCell>
-                            <TableCell className="text-center">
-                                {truck.status === "AVAILABLE" &&
-                                <span className="bg-blue-50 text-blue-600 px-2 py-1 rounded text-xs font-semibold">Available</span>}
+                        {trucks.map((truck) => {
+                            const isOperable = truck.status === "AVAILABLE" || truck.status === "IN_TRANSIT";
+                        
+                            return (
+                                <TableRow key={truck.id}>
+                                    <TableCell className="text-center font-medium">{truck.unitNumber}</TableCell>
 
-                                {truck.status === "IN_TRANSIT" &&
-                                <span className="bg-emerald-50 text-emerald-600 px-2 py-1 rounded text-xs font-semibold">In Transit</span>}
+                                    <TableCell className="text-center">
+                                        {truck?.driver?.name ? (
+                                            // Postoji vozac, prikazujemo njegovo ime i opciju za promenu/odvajanje
+                                            <div className="flex items-center justify-center gap-1">
+                                                <span className="font-semibold text-slate-900">
+                                                    {truck.driver.name}
+                                                </span>
+                                                <AssignDriverModal 
+                                                    truckId={truck.id} 
+                                                    currentDriverId={truck.driverId}
+                                                    currentHos={truck.hosRemaining}
+                                                    drivers={allDrivers} 
+                                                    disabled={!isOperable}
+                                                />
+                                            </div>
+                                        ) : (
+                                            // Nema vozaca, prikazujemo dugme za dodeljivanje
+                                            <AssignDriverModal 
+                                                truckId={truck.id} 
+                                                currentDriverId={truck.driverId}
+                                                currentHos={truck.hosRemaining}
+                                                drivers={allDrivers}
+                                                disabled={!isOperable}
+                                            />
+                                        )}
+                                    </TableCell>
 
-                                {truck.status === "MAINTENANCE" &&
-                                <span className="bg-amber-50 text-amber-600 px-2 py-1 rounded text-xs font-semibold">Maintenance</span>}
+                                    <TableCell className="text-center">
+                                        {truck.status === "AVAILABLE" &&
+                                        <span className="bg-blue-50 text-blue-600 px-2 py-1 rounded text-xs font-semibold">Available</span>}
 
-                                {truck.status === "OUT_OF_SERVICE" &&
-                                <span className="bg-red-50 text-red-700 px-2 py-1 rounded text-xs font-semibold">Out of Service</span>}
-                            </TableCell>
-                            <TableCell className="text-center">{truck.location}</TableCell>
-                            <TableCell className="text-center text-muted-foreground">{truck.equipmentType}</TableCell>
+                                        {truck.status === "IN_TRANSIT" &&
+                                        <span className="bg-emerald-50 text-emerald-600 px-2 py-1 rounded text-xs font-semibold">In Transit</span>}
 
-                            <TableCell className="text-right w-25">
-                                <div className="flex justify-end gap-2">
-                                    <Button variant="ghost" size="icon" asChild>
-                                        <Link href={`/fleet/${truck.id}`}>
-                                            <Pencil className="w-4 h-4" />
-                                        </Link>
-                                    </Button>
+                                        {truck.status === "MAINTENANCE" &&
+                                        <span className="bg-amber-50 text-amber-600 px-2 py-1 rounded text-xs font-semibold">Maintenance</span>}
 
-                                    <form action={deleteTruck.bind(null, truck.id)}>
-                                        <Button variant="ghost" size="icon" className="text-red-600 hover:text-red-700 hover:bg-red-100">
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                    </form>
-                                </div>
-                            </TableCell>
-                        </TableRow>
-                        ))}
+                                        {truck.status === "OUT_OF_SERVICE" &&
+                                        <span className="bg-red-50 text-red-700 px-2 py-1 rounded text-xs font-semibold">Out of Service</span>}
+                                    </TableCell>
+                                    <TableCell className="text-center">{truck.location}</TableCell>
+                                    <TableCell className="text-center text-muted-foreground">{truck.equipmentType}</TableCell>
+
+                                    <TableCell className="text-right w-25">
+                                        <div className="flex justify-end gap-2">
+                                            <Button variant="ghost" size="icon" asChild>
+                                                <Link href={`/fleet/${truck.id}`}>
+                                                    <Pencil className="w-4 h-4" />
+                                                </Link>
+                                            </Button>
+
+                                            <form action={deleteTruck.bind(null, truck.id)}>
+                                                <Button variant="ghost" size="icon" className="text-red-600 hover:text-red-700 hover:bg-red-100">
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </form>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            );
+                        })}
 
                         {trucks.length === 0 && (
                             <TableRow>
@@ -126,7 +139,8 @@ export default async function TrucksPage ({ searchParams }: PageProps) {
                     </TableBody>
                 </Table>
             </div>
-
+                        
+            { /* Pagination controls */ }
             <div className="mt-4 flex items-center justify-center gap-2">
                 {currentPage <= 1 ? (
                     <Button variant="outline" disabled>Prethodna</Button>

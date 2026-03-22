@@ -1,10 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Trash2, Pencil, UserCheck, UserX } from "lucide-react";
-import { db } from "@/lib/db";
+
 import Link from "next/link";
 import { deleteDriver } from "@/lib/actions";
 import { Search } from "@/components/dashboard/search";
+import { DriverService } from "@/services/drivers/driver-service";
 
 interface PageProps {
     searchParams: Promise<{ 
@@ -14,33 +15,13 @@ interface PageProps {
 }
 
 export default async function DriversPage({ searchParams }: PageProps) {
-    const { query, page } = await searchParams;
-
     const ITEMS_PER_PAGE = 20;
-    const currentPage = Number(page) || 1;
-    const offset = (currentPage - 1) * ITEMS_PER_PAGE;
 
-    const totalDriversCount = await db.driver.count({
-        where: query ? {
-            OR: [
-                { name: { contains: query, mode: 'insensitive' as const } },
-                { email: { contains: query, mode: 'insensitive' as const } },
-            ],
-        } : {}
-    });
-    const totalPages = Math.ceil(totalDriversCount / ITEMS_PER_PAGE);
+    const params = await searchParams;
+    const query = params.query || "";
+    const currentPage = Number(params.page) || 1;
 
-    const drivers = await db.driver.findMany({
-        where: query ? {
-            OR: [
-                { name: { contains: query, mode: 'insensitive' as const } },
-                { email: { contains: query, mode: 'insensitive' as const } },
-            ],
-        } : {},
-        orderBy: { name: 'asc' },
-        take: ITEMS_PER_PAGE,
-        skip: offset,
-    });
+    const { drivers, totalPages } = await DriverService.getDrivers(query, currentPage, ITEMS_PER_PAGE);
 
     return (
         <>

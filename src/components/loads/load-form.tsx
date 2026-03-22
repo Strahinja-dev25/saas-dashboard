@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Loader2 } from "lucide-react";
 import { createLoad, updateLoad } from "@/lib/actions";
 import { Load } from "@prisma/client";
-import { z } from "zod";
+import { loadSchema } from "@/lib/schemas/index";
 
 interface LoadFormProps {
     trucks: {
@@ -20,12 +20,6 @@ interface LoadFormProps {
     }[];
     initialData?: Load | null;
 }
-
-const loadSchema = z.object({
-    amount: z.coerce.number().min(1, "Amount must be at least $1"),
-    miles: z.coerce.number().int().min(1, "Miles must be at least 1"),
-    truckId: z.string().min(1, "Please select a truck"),
-});
 
 export function LoadForm({ trucks, initialData }: LoadFormProps) {
     const router = useRouter();
