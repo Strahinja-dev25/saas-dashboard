@@ -34,6 +34,13 @@ enum LoadStatus {
   CANCELLED
 }
 
+enum ExpenseType {
+  FUEL
+  TOLL
+  MAINTENANCE
+  OTHER
+}
+
 
 model Company {
   id              String    @id @default(cuid())
@@ -45,6 +52,7 @@ model Company {
   trucks          Truck[]
   drivers         Driver[]
   loads           Load[]
+  expenses        Expense[]
 }
 
 model User {
@@ -73,6 +81,7 @@ model Truck {
   driverId        String?
   driver          Driver?     @relation(fields: [driverId], references: [id])
   loads           Load[]
+  expenses        Expense[]
 
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
@@ -114,7 +123,29 @@ model Load {
   truck           Truck?      @relation(fields: [truckId], references: [id])
   companyId       String
   company         Company     @relation(fields: [companyId], references: [id])
+  expenses        Expense[]
 
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
+}
+
+model Expense {
+  id            String        @id @default(cuid())
+  amount        Float
+  type          ExpenseType   @default(OTHER)
+  vendor        String?       // npr. "Pilot Travel Center" ili "Bob's Garage"
+  date          DateTime      @default(now())
+
+  companyId     String
+  company       Company       @relation(fields: [companyId], references: [id])
+  
+  truckId       String
+  truck         Truck         @relation(fields: [truckId], references: [id])
+  
+  // Opciona veza: Nisu svi troškovi vezani za turu (redovan servis nije)
+  loadId        String?
+  load          Load?         @relation(fields: [loadId], references: [id])
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 }

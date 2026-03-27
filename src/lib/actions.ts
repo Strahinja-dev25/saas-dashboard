@@ -2,11 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { truckSchema, driverSchema, loadSchema } from '@/lib/schemas/index';
+import { truckSchema, driverSchema, loadSchema, expenseSchema } from '@/lib/schemas/index';
 import { TruckService } from "@/services/fleet/truck-service";
 import { DriverService } from "@/services/drivers/driver-service";
 import { LoadService } from "@/services/loads/load-service";
 import { LoadStatus } from "@prisma/client";
+import { ExpenseService } from "@/services/expenses/expense-service";
 
 // PRIVREMENO: Ovde staviti pravi ID firme iz baze
 const HARDCODED_COMPANY_ID = "firma-1"; 
@@ -121,4 +122,19 @@ export async function deleteLoad (id: string) {
 
     revalidatePath("/loads");
     revalidatePath("/");
+}
+
+// Expense services
+export async function createExpense(rawData: any) {
+    const validatedData = expenseSchema.parse(rawData);
+
+    await ExpenseService.createExpense(validatedData);
+
+    revalidatePath("/expenses");
+}
+
+export async function deleteExpense(id: string) {
+    await ExpenseService.deleteExpense(id);
+
+    revalidatePath("/expenses");
 }

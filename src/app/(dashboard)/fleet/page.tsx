@@ -165,25 +165,25 @@ export default async function FleetPage ({ searchParams }: PageProps) {
             { /* Pagination controls */ }
             <div className="mt-4 flex items-center justify-center gap-2">
                 {currentPage <= 1 ? (
-                    <Button variant="outline" disabled>Prethodna</Button>
+                    <Button variant="outline" disabled>Previous</Button>
                 ) : (
                     <Button variant="outline" asChild>
                         <Link href={`?query=${query}&sort=${sortBy}&order=${sortOrder}&page=${currentPage - 1}`}>
-                            Prethodna
+                            Previous
                         </Link>
                     </Button>
                 )}
 
                 <span className="text-sm font-medium">
-                    Strana {currentPage} od {totalPages}
+                    Page {currentPage} of {totalPages}
                 </span>
 
                 {currentPage >= totalPages ? (
-                    <Button variant="outline" disabled>Sledeća</Button>
+                    <Button variant="outline" disabled>Next</Button>
                 ) : (
                     <Button variant="outline" disabled={currentPage >= totalPages} asChild>
                         <Link href={`?query=${query}&sort=${sortBy}&order=${sortOrder}&page=${currentPage + 1}`}>
-                            Sledeća
+                            Next
                         </Link>
                     </Button>
                 )}

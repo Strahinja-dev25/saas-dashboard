@@ -35,7 +35,7 @@ export default async function LoadHistoryPage({ searchParams }: PageProps) {
                     <p className="text-muted-foreground ml-10">Completed and cancelled loads registry.</p>
                 </div>
 
-                <Search placeholderName="Search history of loads..." />
+                <Search placeholder="Search history of loads..." />
             </div>
 
             <hr />
@@ -112,7 +112,7 @@ export default async function LoadHistoryPage({ searchParams }: PageProps) {
                 </Table>
             </div>
 
-            {/* PAGINACIJA (isto kao na ostalim stranama) */}
+            {/* PAGINACIJA */}
             <div className="mt-4 flex items-center justify-center gap-2">
                 <Button variant="outline" disabled={currentPage <= 1} asChild={currentPage > 1}>
                     {currentPage <= 1 ? "Previous" : <Link href={`?query=${query}&page=${currentPage - 1}`}>Previous</Link>}

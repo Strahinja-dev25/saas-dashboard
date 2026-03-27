@@ -26,3 +26,13 @@ export const driverSchema = z.object({
     email: z.email("Invalid email address"),
     eldStatus: z.string().min(1, "Status is required"),
 });
+
+// EXPENSE SCHEMA
+export const expenseSchema = z.object({
+    amount: z.coerce.number().min(0.01, "Amount must be greater than 0"),
+    type: z.enum(["FUEL", "TOLL", "MAINTENANCE", "OTHER"], { message: "Invalid type" }),
+    vendor: z.string().optional().nullable(),
+    date: z.coerce.date(), // Zod će sam pretvoriti datum iz inputa u pravi DateTime
+    truckId: z.string().min(1, "Please select a truck"),
+    loadId: z.string().optional().or(z.literal("none")), // Ako je trošak van ture
+});
