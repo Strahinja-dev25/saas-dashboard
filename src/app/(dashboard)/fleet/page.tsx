@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Trash2, Pencil } from "lucide-react";
+import { Plus, Trash2, Pencil, ArrowUpDown } from "lucide-react";
 
 import Link from "next/link";
 import { deleteTruck } from "@/lib/actions";
@@ -13,6 +13,8 @@ interface PageProps {
     searchParams: Promise<{ 
         query?: string;
         page?: string;
+        sort?: string;
+        order?: string;
     }>;
 }
 
@@ -23,7 +25,11 @@ export default async function FleetPage ({ searchParams }: PageProps) {
     const query = params.query || "";
     const currentPage = Number(params.page) || 1;
 
-    const { trucks, totalPages } = await TruckService.getFleet(query, currentPage, ITEMS_PER_PAGE);
+    // Sort i order se citaju iz urla
+    const sortBy = params.sort || "createdAt";
+    const sortOrder = (params.order as "asc" | "desc") || "desc";
+
+    const { trucks, totalPages } = await TruckService.getFleet(query, currentPage, ITEMS_PER_PAGE, sortBy, sortOrder);
     const allDrivers = await DriverService.getDriversForAssignment();
 
     return (
@@ -34,7 +40,7 @@ export default async function FleetPage ({ searchParams }: PageProps) {
                     <p className="text-muted-foreground">Manage your trucks and trailers here.</p>
                 </div>
 
-                <Search placeholderName="Search unit # or driver name..." />
+                <Search placeholder="Search by unit #, driver name or location..." />
 
                 <Button asChild>
                     <Link href="/fleet/new">
@@ -50,9 +56,28 @@ export default async function FleetPage ({ searchParams }: PageProps) {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead className="w-40 text-center font-bold text-slate-700">Unit #</TableHead>
+                            <TableHead className="w-40 text-center font-bold text-slate-700">
+                                <Link 
+                                    href={`?query=${query}&page=${currentPage}&sort=unitNumber&order=${sortOrder === 'asc' ? 'desc' : 'asc'}`}
+                                    className="flex justify-center items-center gap-1 hover:text-sky-600 transition-colors"
+                                >
+                                    Unit #
+                                    <ArrowUpDown className="h-3 w-3" />
+                                </Link>
+                            </TableHead>
+                            
                             <TableHead className="text-center font-bold text-slate-700">Driver</TableHead>
-                            <TableHead className="w-40 text-center font-bold text-slate-700">Status</TableHead>
+
+                            <TableHead className="w-40 text-center font-bold text-slate-700">
+                                <Link 
+                                    href={`?query=${query}&page=${currentPage}&sort=status&order=${sortOrder === 'asc' ? 'desc' : 'asc'}`}
+                                    className="flex items-center justify-center gap-1 hover:text-sky-600 transition-colors"
+                                >
+                                    Status
+                                    <ArrowUpDown className="h-3 w-3" />
+                                </Link>
+                            </TableHead>
+
                             <TableHead className="text-center font-bold text-slate-700">Location</TableHead>
                             <TableHead className="w-40 text-center font-bold text-slate-700">Equipment</TableHead>
                             <TableHead className="w-30 text-center font-bold text-slate-700">Actions</TableHead>
@@ -69,7 +94,6 @@ export default async function FleetPage ({ searchParams }: PageProps) {
 
                                     <TableCell className="text-center">
                                         {truck?.driver?.name ? (
-                                            // Postoji vozac, prikazujemo njegovo ime i opciju za promenu/odvajanje
                                             <div className="flex items-center justify-center gap-1">
                                                 <span className="font-semibold text-slate-900">
                                                     {truck.driver.name}
@@ -77,7 +101,6 @@ export default async function FleetPage ({ searchParams }: PageProps) {
                                                 <AssignDriverModal 
                                                     truckId={truck.id} 
                                                     currentDriverId={truck.driverId}
-                                                    currentHos={truck.hosRemaining}
                                                     drivers={allDrivers} 
                                                     disabled={!isOperable}
                                                 />
@@ -87,7 +110,6 @@ export default async function FleetPage ({ searchParams }: PageProps) {
                                             <AssignDriverModal 
                                                 truckId={truck.id} 
                                                 currentDriverId={truck.driverId}
-                                                currentHos={truck.hosRemaining}
                                                 drivers={allDrivers}
                                                 disabled={!isOperable}
                                             />
@@ -146,7 +168,7 @@ export default async function FleetPage ({ searchParams }: PageProps) {
                     <Button variant="outline" disabled>Prethodna</Button>
                 ) : (
                     <Button variant="outline" asChild>
-                        <Link href={`?query=${query || ""}&page=${currentPage - 1}`}>
+                        <Link href={`?query=${query}&sort=${sortBy}&order=${sortOrder}&page=${currentPage - 1}`}>
                             Prethodna
                         </Link>
                     </Button>
@@ -160,7 +182,7 @@ export default async function FleetPage ({ searchParams }: PageProps) {
                     <Button variant="outline" disabled>Sledeća</Button>
                 ) : (
                     <Button variant="outline" disabled={currentPage >= totalPages} asChild>
-                        <Link href={`?query=${query || ""}&page=${currentPage + 1}`}>
+                        <Link href={`?query=${query}&sort=${sortBy}&order=${sortOrder}&page=${currentPage + 1}`}>
                             Sledeća
                         </Link>
                     </Button>

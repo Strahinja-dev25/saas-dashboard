@@ -67,7 +67,6 @@ model Truck {
   location        String
   destination     String?             // Finalna destinacija kamiona
   equipmentType   String              // Dry Van, Reefer, Flatbed
-  hosRemaining    String              // Hours of Service, "2h 15m"
 
   companyId       String
   company         Company     @relation(fields: [companyId], references: [id])
@@ -80,30 +79,42 @@ model Truck {
 }
 
 model Driver {
-  id            String     @id @default(cuid())
-  name          String
-  email         String     @unique
-  eldStatus     String     @default("CONNECTED") // CONNECTED, DISCONNECTED
+  id                    String     @id @default(cuid())
+  name                  String
+  email                 String     @unique
+  eldStatus             String     @default("CONNECTED") // CONNECTED, DISCONNECTED
 
-  companyId     String
-  company       Company    @relation(fields: [companyId], references: [id])
-  trucks        Truck[]
+  hosAvailable          Float      @default(11.0)
+  lastHosReset          DateTime   @default(now())
+  isDriving             Boolean    @default(false)
 
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  companyId             String
+  company               Company    @relation(fields: [companyId], references: [id])
+  trucks                Truck[]
+
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
 }
 
 model Load {
-  id          String      @id @default(cuid())
-  amount      Float      // Gross Revenue od ture
-  miles       Int        // Pređene milje na ovoj turi
-  status      LoadStatus  @default(PENDING)
+  id              String      @id @default(cuid())
 
-  truckId     String?
-  truck       Truck?      @relation(fields: [truckId], references: [id])
-  companyId   String
-  company     Company     @relation(fields: [companyId], references: [id])
+  origin          String      // Odakle kreće (npr. Chicago, IL)
+  destination     String      // Gde istovara (npr. Dallas, TX)
 
-  createdAt   DateTime    @default(now())
-  updatedAt DateTime      @updatedAt
+  amount          Float       // Gross Revenue od ture
+  miles           Int         // Pređene milje na ovoj turi
+  status          LoadStatus  @default(PENDING)
+
+  startedAt       DateTime?
+  deliveredAt     DateTime?
+  estimatedHours  Float       @default(0)
+
+  truckId         String?
+  truck           Truck?      @relation(fields: [truckId], references: [id])
+  companyId       String
+  company         Company     @relation(fields: [companyId], references: [id])
+
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
 }

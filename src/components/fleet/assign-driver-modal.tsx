@@ -8,21 +8,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { UserPlus, UserCog, Loader2, Clock } from "lucide-react";
 import { assignDriverToTruck } from "@/lib/actions";
+import { toast } from "sonner";
 
 interface AssignDriverModalProps {
-  truckId: string;
-  currentDriverId?: string | null;
-  currentHos?: string | null;
-  drivers: { id: string; name: string, trucks: { id: string }[] }[];
-  disabled?: boolean;
+    truckId: string;
+    currentDriverId?: string | null;
+    drivers: { id: string; name: string; eldStatus?: string; trucks: { id: string }[] }[];
+    disabled?: boolean;
 }
 
-export function AssignDriverModal({ truckId, currentDriverId, currentHos, drivers, disabled }: AssignDriverModalProps) {
+export function AssignDriverModal({ truckId, currentDriverId, drivers, disabled }: AssignDriverModalProps) {
     const [open, setOpen] = useState(false);
     const [isPending, setIsPending] = useState(false);
     
     const [driverId, setDriverId] = useState(currentDriverId || "");
-    const [hos, setHos] = useState(currentHos || "");
 
     // Filter za vozace koje treba prikazati u dropdownu: Svi vozaci + vozaci koji su trenutno dodeljeni kamionu (ako ih ima)
     const availableDrivers = drivers.filter(driver => 
@@ -33,10 +32,12 @@ export function AssignDriverModal({ truckId, currentDriverId, currentHos, driver
         setIsPending(true);
 
         try {
-            await assignDriverToTruck(truckId, driverId, hos);
+            await assignDriverToTruck(truckId, driverId);
             setOpen(false);
-        } catch (error) {
-            alert(error instanceof Error ? error.message : "Error assigning driver.");
+
+            toast.success("Driver assigned successfully.");
+        } catch (error: any) {
+            toast.error(error.message || "Failed to update assignment (assign driver).");
         } finally {
             setIsPending(false);
         }
@@ -88,29 +89,22 @@ export function AssignDriverModal({ truckId, currentDriverId, currentHos, driver
                             </SelectTrigger>
 
                             <SelectContent>
-                                <SelectItem value="unassigned" className="text-red-500 font-medium">
+                                <SelectItem value="unassigned" className="text-red-600 font-medium">
                                     - Remove Driver (Unassign) -
                                 </SelectItem>
+
                                 {availableDrivers.map((driver) => (
-                                    <SelectItem key={driver.id} value={driver.id}>
+                                    <SelectItem key={driver.id} value={driver.id} disabled={driver.eldStatus === "DISCONNECTED"} >
                                         {driver.name}
+                                        {driver.eldStatus === "DISCONNECTED" && (
+                                            <span className="text-[10px] text-red-600 font-bold bg-red-50 px-1 py-0.5 rounded uppercase">
+                                                Disconnected
+                                            </span>
+                                        )}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
-                    </div>
-
-                    {/* 2. Unos hos-a */}
-                    <div className="space-y-2">
-                        <Label className="flex items-center gap-2">
-                            <Clock className="h-3 w-3" /> Hours of Service (HOS)
-                        </Label>
-                        <Input 
-                            placeholder="e.g. 10h 30m remaining"
-                            value={hos}
-                            onChange={(e) => setHos(e.target.value)}
-                            disabled={isPending || driverId === "unassigned"}
-                        />
                     </div>
                     
                     <Button onClick={handleSave} disabled={isPending} className="bg-sky-600 hover:bg-sky-700 w-full mt-2">

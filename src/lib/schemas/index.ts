@@ -7,17 +7,17 @@ export const truckSchema = z.object({
     location: z.string().min(2, "Location is required"),
     destination: z.string().optional().nullable(),
     equipmentType: z.string().min(1, "Equipment type is required"),
-    // Opciona polja koja hendluje logika, a ne forma:
-    hosRemaining: z.string().optional(),
     driverId: z.string().optional().or(z.literal("")),
 });
 
 // LOAD SCHEMA
 export const loadSchema = z.object({
+    origin: z.string().min(2, "Origin is required (e.g. Chicago, IL)"),
+    destination: z.string().min(2, "Destination is required (e.g. Dallas, TX)"),
     amount: z.coerce.number().min(1, "Amount must be at least $1"),
     miles: z.coerce.number().int().min(1, "Miles must be at least 1"),
-    status: z.enum(["PENDING", "ASSIGNED", "IN_TRANSIT", "DELIVERED", "CANCELLED"], { message: "Invalid status" }),
     truckId: z.string().optional().or(z.literal("unassigned")),
+    estimatedHours: z.coerce.number().min(0.1, "Required"),
 });
 
 // DRIVER SCHEMA

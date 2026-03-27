@@ -1,22 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
-import { createLoad, updateLoad } from "@/lib/actions";
-import { Load } from "@prisma/client";
+
+import { useRouter } from "next/navigation";
+import { createLoad, updateLoadData } from "@/lib/actions";
+import { Load, LoadStatus } from "@prisma/client";
 import { loadSchema } from "@/lib/schemas/index";
 
 interface LoadFormProps {
     trucks: {
         id: string;
         unitNumber: string;
-        driverName: string;
+        driver?: { name: string } | null;
     }[];
     initialData?: Load | null;
 }
@@ -24,13 +25,19 @@ interface LoadFormProps {
 export function LoadForm({ trucks, initialData }: LoadFormProps) {
     const router = useRouter();
     const [formData, setFormData] = useState({
+        origin: initialData?.origin || "",
+        destination: initialData?.destination || "",
         amount: initialData?.amount.toString() || "",
         miles: initialData?.miles.toString() || "",
-        truckId: initialData?.truckId || "",
+        truckId: initialData?.truckId || "unassigned",
+        status: initialData?.status || LoadStatus.PENDING,
+        estimatedHours: initialData?.estimatedHours?.toString() || "",
     });
 
     const [isPending, setIsPending] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const isLockedForTruckChange = initialData?.status === "IN_TRANSIT" || initialData?.status === "DELIVERED";
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -49,11 +56,11 @@ export function LoadForm({ trucks, initialData }: LoadFormProps) {
 
         try {
             if(initialData)
-                await updateLoad(initialData.id, result.data);
+                await updateLoadData(initialData.id, result.data);
             else
                 await createLoad(result.data);
         } catch (err) {
-            setError("Failed to save load.");
+            setError("Failed to save load. Please check your input.");
         } finally {
             setIsPending(false);
         }
@@ -68,7 +75,7 @@ export function LoadForm({ trucks, initialData }: LoadFormProps) {
         <Card>
             <CardHeader>
                 <CardTitle>
-                    {initialData ? `Edit Load: ${initialData.id.slice(-6).toUpperCase()}` : "Dispatch New Load"}
+                    {initialData ? `Edit Load: #${initialData.id.slice(-6).toUpperCase()}` : "Create New Load"}
                 </CardTitle>
             </CardHeader>
 
@@ -80,49 +87,43 @@ export function LoadForm({ trucks, initialData }: LoadFormProps) {
                         </div>
                     )}
 
-                    { /* 1. Select Truck */ }
-                    <div className="space-y-2">
-                        <Label>Select Assigned Truck</Label>
-                        <Select 
-                            defaultValue={initialData?.truckId || undefined}
-                            onValueChange={(val) => setFormData({ ...formData, truckId: val })}
-                            disabled={isPending}
-                        >
-                            <SelectTrigger>
-                                <SelectValue placeholder="Choose a unit from fleet" />
-                            </SelectTrigger>
-
-                            <SelectContent>
-                                {trucks.map((truck) => (
-                                <SelectItem key={truck.id} value={truck.id}>
-                                    {truck.unitNumber} - {truck.driverName}
-                                </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                    { /* 1. Ruta */ }
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="origin">Origin (Pick-up)</Label>
+                            <Input
+                                id="origin" type="text" placeholder="e.g. Chicago, IL"
+                                value={formData.origin}
+                                onChange={(e) => setFormData({ ...formData, origin: e.target.value })}
+                                disabled={isPending}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="destination">Destination (Drop-off)</Label>
+                            <Input
+                                id="destination" type="text" placeholder="e.g. Dallas, TX"
+                                value={formData.destination}
+                                onChange={(e) => setFormData({ ...formData, destination: e.target.value })}
+                                disabled={isPending}
+                            />
+                        </div>
                     </div>
 
+                    {/* 2. Revenue and Total Miles */}
                     <div className="grid grid-cols-2 gap-4">
-                        { /* 2. Revenue */ }
                         <div className="space-y-2">
                             <Label htmlFor="amount">Gross Revenue ($)</Label>
                             <Input
-                                id="amount"
-                                type="number"
-                                placeholder="0.00"
+                                id="amount" type="number" placeholder="0.00"
                                 value={formData.amount}
                                 onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
                                 disabled={isPending}
                             />
                         </div>
-
-                        { /* 3. Total miles */ }
                         <div className="space-y-2">
                             <Label htmlFor="miles">Total Miles</Label>
                             <Input
-                                id="miles"
-                                type="number"
-                                placeholder="0"
+                                id="miles" type="number" placeholder="0"
                                 value={formData.miles}
                                 onChange={(e) => setFormData({ ...formData, miles: e.target.value })}
                                 disabled={isPending}
@@ -130,11 +131,49 @@ export function LoadForm({ trucks, initialData }: LoadFormProps) {
                         </div>
                     </div>
 
+                    {/* 3. Estimated Hours */}
+                    <div className="space-y-2">
+                        <Label htmlFor="estimatedHours">Est. Duration (Hours)</Label>
+                        <Input
+                            id="estimatedHours" type="number" step="0.5" placeholder="e.g. 4.5"
+                            value={formData.estimatedHours}
+                            onChange={(e) => setFormData({ ...formData, estimatedHours: e.target.value })}
+                        />
+                    </div>
+
+                    {/* 4. Assign Truck */}
+                    <div className="grid grid-cols-2 gap-4 border-t pt-4">
+                        <div className="space-y-2">
+                            <Label>Assigned Truck</Label>
+                            <Select 
+                                value={formData.truckId}
+                                onValueChange={(val) => setFormData({ ...formData, truckId: val })}
+                                disabled={isPending || isLockedForTruckChange}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Choose a unit" />
+                                </SelectTrigger>
+
+                                <SelectContent>
+                                    <SelectItem value="unassigned" className="text-amber-600 font-medium">
+                                        - Unassigned (Pending Load) -
+                                    </SelectItem>
+                                    
+                                    {trucks.map((truck) => (
+                                    <SelectItem key={truck.id} value={truck.id}>
+                                        {truck.unitNumber} - {truck.driver?.name || "No Driver"}
+                                    </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+
                     <Button type="submit" className="w-full bg-sky-600 hover:bg-sky-700" disabled={isPending}>
                         {isPending ? (
                             <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</>
                         ) : (
-                            initialData ? "Save Changes" : "Dispatch Load"
+                            initialData ? "Save Changes" : "Create Load"
                         )}
                     </Button>
                 </form>

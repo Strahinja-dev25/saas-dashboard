@@ -6,10 +6,10 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useDebouncedCallback } from "use-debounce";
 
 interface SearchProps {
-  placeholderName?: string;
+  placeholder?: string;
 }
 
-export function Search ({ placeholderName }: SearchProps) {
+export function Search ({ placeholder }: SearchProps) {
     const searchParams = useSearchParams();
     const pathname = usePathname();
     const { replace } = useRouter();
@@ -29,7 +29,7 @@ export function Search ({ placeholderName }: SearchProps) {
         <div className="max-w-200 relative flex flex-1 shrink-0">
             <SearchIcon className="absolute left-3 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-gray-500" />
             <Input
-                placeholder={placeholderName}
+                placeholder={placeholder}
                 className="pl-10"
                 onChange={(e) => handleSearch(e.target.value)}
                 defaultValue={searchParams.get("query")?.toString()}

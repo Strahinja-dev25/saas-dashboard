@@ -1,6 +1,7 @@
-import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import { LoadForm } from "@/components/loads/load-form";
+import { LoadService } from "@/services/loads/load-service";
+import { TruckService } from "@/services/fleet/truck-service";
 
 interface EditLoadPageProps {
     params: Promise<{ id: string }>;
@@ -9,17 +10,12 @@ interface EditLoadPageProps {
 export default async function EditLoadPage({ params }: EditLoadPageProps) {
     const { id } = await params;
 
-    const load = await db.load.findUnique({
-        where: { id },
-    });
+    const load = await LoadService.getLoadById(id);
 
     if (!load)
         notFound();
 
-    const trucks = await db.truck.findMany({
-        orderBy: { unitNumber: 'asc' },
-        select: { id: true, unitNumber: true, driverName: true }
-    });
+    const trucks = await TruckService.getTrucksForDropdown(load?.truckId);
 
     return (
         <div className="p-4">

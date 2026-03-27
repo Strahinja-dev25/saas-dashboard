@@ -15,7 +15,7 @@ export function Sidebar() {
     <div className="flex flex-col h-full bg-slate-900 text-white w-64 p-4">
       <div className="text-xl font-bold mb-10 px-2">
         <Truck className="text-sky-500" />
-        DeepThought<span className="text-sky-500 text-sm">TMS</span>
+        STR4LE<span className="text-sky-500 text-sm">TMS</span>
       </div>
       
       <nav className="flex-1 space-y-2">

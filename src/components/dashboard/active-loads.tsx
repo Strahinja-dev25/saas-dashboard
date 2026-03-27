@@ -32,7 +32,7 @@ export function ActiveLoads ({ loads }: ActiveLoadsProps) {
                     </div>
 
                     <div className="ml-auto font-medium">
-                        +${load.amount.toLocaleString()}
+                        ${load.amount.toLocaleString()}
                     </div>
                 </div>
             ))}

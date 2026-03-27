@@ -4,8 +4,27 @@ import { db } from "@/lib/db";
 const COMPANY_ID = "firma-1";
 
 export const DriverService = {
+    // Lazy reset HOS-a
+    async _checkAndResetHOS() {
+        const tenHoursAgo = new Date(Date.now() - 10 * 60 * 60 * 1000);
+
+        await db.driver.updateMany({
+            where: {
+                isDriving: false,
+                updatedAt: { lt: tenHoursAgo },
+                hosAvailable: { lt: 11 }
+            },
+            data: {
+                hosAvailable: 11.0,
+                lastHosReset: new Date()
+            }
+        });
+    },
+    
     // Nalazenje cele liste vozaca. Postoji i search i paginacija
-    async getDrivers(query: string = "", page: number = 1, limit: number = 20) {
+    async getDrivers(query: string = "", page: number = 1, limit: number = 20, sortBy: string = "name", sortOrder: "asc" | "desc" = "asc") {
+        await this._checkAndResetHOS(); // Reset za HOS
+
         const offset = (page - 1) * limit;
 
         const whereClause = {
@@ -22,7 +41,7 @@ export const DriverService = {
             db.driver.count({ where: whereClause }),
             db.driver.findMany({
                 where: whereClause,
-                orderBy: { name: 'asc' },
+                orderBy: { [sortBy]: sortOrder },
                 take: limit,
                 skip: offset
             })
@@ -37,6 +56,8 @@ export const DriverService = {
 
     // Nalazenje liste svih vozaca. Ime i id vozaca
     async getAllDriversList() {
+        await this._checkAndResetHOS(); // Reset za HOS
+
         return db.driver.findMany({
             where: { companyId: COMPANY_ID },
             orderBy: { name: 'asc' },
@@ -46,12 +67,15 @@ export const DriverService = {
 
     // Nalazenje liste vozaca koji imaju kamion dodeljen
     async getDriversForAssignment() {
+        await this._checkAndResetHOS(); // Reset za HOS
+
         return db.driver.findMany({
             where: { companyId: COMPANY_ID },
             orderBy: { name: 'asc' },
             select: {
                 id: true,
                 name: true,
+                eldStatus: true,
                 trucks: {
                     select: { id: true }
                 }
@@ -61,6 +85,8 @@ export const DriverService = {
 
     // Nalazenje jednog vozaca. Edit stranica
     async getDriverById(id: string) {
+        await this._checkAndResetHOS(); // Reset za HOS
+
         return db.driver.findUnique({
             where: { id, companyId: COMPANY_ID }
         });
@@ -78,6 +104,17 @@ export const DriverService = {
 
     // Menjanje vozaca. Edit stranica
     async updateDriver(id: string, data: any) {
+        if(data.eldStatus  === "DISCONNECTED")
+        {
+            await db.truck.updateMany({
+                where: { driverId: id },
+                data: {
+                    driverId: null,
+                    status: "AVAILABLE",
+                }
+            });
+        }
+
         return db.driver.update({
             where: { id },
             data

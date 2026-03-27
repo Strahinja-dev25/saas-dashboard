@@ -37,7 +37,7 @@ export function Navbar() {
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
                         type="search"
-                        placeholder="Search unit #, driver or load..."
+                        placeholder="Global Command Search..."
                         className="pl-8 bg-slate-50 border-none focus-visible:ring-1 focus-visible:ring-sky-500 w-full"
                     />
                 </div>

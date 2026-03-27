@@ -1,15 +1,8 @@
-import { db } from "@/lib/db";
 import { LoadForm } from "@/components/loads/load-form";
+import { TruckService } from "@/services/fleet/truck-service";
 
 export default async function NewLoadPage () {
-    const trucks = await db.truck.findMany({
-        orderBy: { unitNumber: 'asc' },
-        select: {
-            id: true,
-            unitNumber: true,
-            driverName: true
-        }
-    });
+    const trucks = await TruckService.getTrucksForDropdown();
 
     return (
         <div className="max-w-2xl mx-auto p-4">

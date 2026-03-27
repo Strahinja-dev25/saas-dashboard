@@ -34,10 +34,10 @@ export async function updateTruck (id:string, rawData: any) {
     redirect("/fleet");
 }
 
-export async function assignDriverToTruck (truckId: string, driverId: string | undefined, hos: string) {
+export async function assignDriverToTruck (truckId: string, driverId: string | undefined) {
     
     try {
-        await TruckService.assignDriver(truckId, driverId, hos);
+        await TruckService.assignDriver(truckId, driverId);
 
         revalidatePath("/fleet");
         revalidatePath("/");
@@ -88,7 +88,9 @@ export async function deleteDriver (id: string) {
 export async function createLoad (rawData: any) {
     const validatedData = loadSchema.parse(rawData);
 
-    await LoadService.createLoad(validatedData);
+    const initialStatus = validatedData.truckId === "unassigned" ? LoadStatus.PENDING : LoadStatus.ASSIGNED;
+
+    await LoadService.createLoad({...validatedData, status: initialStatus});
 
     revalidatePath("/loads");
     revalidatePath("/");

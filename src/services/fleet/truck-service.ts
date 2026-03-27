@@ -5,7 +5,7 @@ const COMPANY_ID = "firma-1";
 
 export const TruckService = {
     // Nalazenje cele liste kamiona. Postoji i search i paginacija
-    async getFleet(query: string = "", page: number = 1, limit: number = 20) {
+    async getFleet(query: string = "", page: number = 1, limit: number = 20, sortBy: string = "createdAt", sortOrder: "asc" | "desc" = "desc") {
         const offset = (page - 1) * limit;
 
         const whereClause = {
@@ -23,11 +23,11 @@ export const TruckService = {
             db.truck.count({ where: whereClause }),
             db.truck.findMany({
                 where: whereClause,
-                orderBy: { createdAt: 'desc' },
+                orderBy: { [sortBy]: sortOrder },
                 take: limit,
                 skip: offset,
                 include: {
-                    driver: { select: { name: true } },
+                    driver: { select: { name: true, eldStatus: true } },
                 },
             })
         ]);
@@ -40,9 +40,22 @@ export const TruckService = {
     },
 
     // Nalazenje liste za dropdown meni. Manja lista koja vraca samo id kamiona, oznaku kamiona i ime vozaca (Modal)
-    async getTrucksForDropdown() {
+    async getTrucksForDropdown(includeCurrentTruckId?: string | null) {
         return db.truck.findMany({
-            where: { companyId: COMPANY_ID },
+            where: {
+                companyId: COMPANY_ID,
+                OR:[
+                    {
+                        status: "AVAILABLE",
+                        loads: {
+                            none: {
+                                status: { in: ["ASSIGNED", "IN_TRANSIT"] }
+                            }
+                        }
+                    },
+                    includeCurrentTruckId ? { id: includeCurrentTruckId } : { id: "never_match" }
+                ]
+            },
             orderBy: { unitNumber: 'asc' },
             select: {
                 id: true,
@@ -68,19 +81,17 @@ export const TruckService = {
                 ...data,
                 companyId: COMPANY_ID,
                 driverId: data.driverId || null,
-                hosRemaining: "N/A",
             }
         });
     },
 
     // Menjanje kamiona. Edit stranica
     async updateTruck(id: string, data: any) {
-        let { driverId, hosRemaining } = data;
+        let { driverId } = data;
 
         if (data.status === "MAINTENANCE" || data.status === "OUT_OF_SERVICE")
         {
             driverId = null;
-            hosRemaining = "N/A";
         }
 
         return db.truck.update({
@@ -88,7 +99,6 @@ export const TruckService = {
             data: {
                 ...data,
                 driverId: driverId || null,
-                hosRemaining
             }
         });
     },
@@ -99,13 +109,18 @@ export const TruckService = {
     },
 
     // Menjanje u modalu
-    async assignDriver(truckId: string, driverId: string | undefined, hos: string) {
+    async assignDriver(truckId: string, driverId: string | undefined) {
         const isRemoving = !driverId || driverId === "unassigned";
 
-        if (!isRemoving)
+        if (!isRemoving && driverId)
         {
-            const truck = await db.truck.findUnique({ where: { id: truckId } });
+            const driver = await db.driver.findUnique({ where: { id: driverId } });
 
+            if(driver?.eldStatus === "DISCONNECTED")
+                throw new Error("ELD Violation: Driver is DISCONNECTED. Cannot assign to truck.");
+
+            const truck = await db.truck.findUnique({ where: { id: truckId } });
+            
             if (truck?.status === "MAINTENANCE" || truck?.status === "OUT_OF_SERVICE")
                 throw new Error("Unit is not currently available and cannot be assigned a driver.");
         }
@@ -114,8 +129,7 @@ export const TruckService = {
             where: { id: truckId },
             data: {
                 driverId: isRemoving ? null : driverId,
-                hosRemaining: isRemoving ? "N/A" : hos,
-                status: isRemoving ? "AVAILABLE" : "IN_TRANSIT"
+                status: "AVAILABLE"
             }
         });
     }
