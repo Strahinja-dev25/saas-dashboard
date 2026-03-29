@@ -13,7 +13,7 @@ export default function SettingsPage() {
             </div>
 
             <div className="grid gap-6">
-                {/* KARTICA 1: Osnovni poslovni podaci */}
+                {/* 1. Osnovni poslovni podaci */}
                 <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
@@ -50,7 +50,7 @@ export default function SettingsPage() {
                     </CardContent>
                 </Card>
 
-                {/* KARTICA 2: Kontakt podaci HQ */}
+                {/* 2. Kontakt podaci HQ */}
                 <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
@@ -92,7 +92,6 @@ export default function SettingsPage() {
                     </CardContent>
                 </Card>
 
-                {/* AKCIONA DUGMAD */}
                 <div className="flex justify-end gap-4">
                     <Button variant="outline">Cancel</Button>
                     <Button className="bg-sky-600 hover:bg-sky-700">Save Changes</Button>
