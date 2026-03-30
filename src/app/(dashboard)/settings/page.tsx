@@ -4,6 +4,8 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Building2, ShieldCheck, MapPin, Phone } from "lucide-react";
 
+import { SuspendModal } from "@/components/settings/suspend-modal";
+
 export default function SettingsPage() {
     return (
         <div className="max-w-4xl mx-auto space-y-6">
@@ -91,6 +93,29 @@ export default function SettingsPage() {
                         </div>
                     </CardContent>
                 </Card>
+
+                {/* 3. Danger Zone button (PANIC button) */}
+                <div className="mt-8 border-2 border-red-100 bg-red-50/30 rounded-xl overflow-hidden">
+                    <div className="p-6">
+                        <h3 className="text-lg font-bold text-red-600 mb-2 flex items-center gap-2">
+                            <ShieldCheck className="h-5 w-5" /> {/* Promeni ikonicu ako zelis, npr. AlertOctagon */}
+                            Danger Zone
+                        </h3>
+                        <p className="text-sm text-slate-600 mb-6 max-w-2xl">
+                            Freezing the system prevents dispatchers from assigning new loads or modifying the fleet. This action is used during DOT audits, severe security breaches, or major operational shifts.
+                        </p>
+                        
+                        <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-red-100 shadow-sm">
+                            <div>
+                                <h4 className="font-semibold text-slate-900">Suspend Account Operations</h4>
+                                <p className="text-sm text-muted-foreground">Temporarily lock the workspace for all dispatchers.</p>
+                            </div>
+                            
+                            { /* Suspend modal koji otvara danger zone komponentu */ }
+                            <SuspendModal companyName="Transport Company TMS" />
+                        </div>
+                    </div>
+                </div>
 
                 <div className="flex justify-end gap-4">
                     <Button variant="outline">Cancel</Button>
