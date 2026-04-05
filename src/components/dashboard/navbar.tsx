@@ -1,7 +1,9 @@
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Search, Store, LayoutDashboard } from "lucide-react";
+
+import { ThemeToggle } from "@/components/theme-toggle";
+import { UserButton } from "@clerk/nextjs";
 
 export function Navbar() {
     return (
@@ -43,14 +45,18 @@ export function Navbar() {
                 </div>
 
                 <div className="flex items-center justify-end gap-3">
+                    <ThemeToggle />
+
+                    <div className="h-6 w-px bg-slate-200 mx-2 hidden sm:block"></div>
+
                     <div className="flex-col text-right hidden sm:flex">
-                        <span className="text-md font-bold leading-none">Marko Marković</span>
-                        <span className="text-[10px] text-sky-600 font-bold uppercase mt-1">Super Admin</span>
+                        <span className="text-sm font-bold leading-none">System Admin</span>
+                        <span className="text-[10px] text-sky-600 font-bold uppercase mt-1">Authorized</span>
                     </div>
 
-                    <Avatar className="h-9 w-9 border-2 border-sky-100">
-                        <AvatarFallback className="bg-sky-500 text-white font-bold">MM</AvatarFallback>
-                    </Avatar>
+                    <div className="h-9 w-9 rounded-full border-2 border-sky-100 flex items-center justify-center hover:scale-105 transition-transform">
+                        <UserButton />
+                    </div>
                 </div>
             </div>
         </header>
