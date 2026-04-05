@@ -52,49 +52,51 @@ export default async function Home () {
     const detailedLoads: DetailedLoadItem[] = await DashboardService.getRecentTransactions();
 
     return (
-        <div className="space-y-4">
-            <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+        <div className="space-y-6">
+            <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
                 { stats.map((stat) => (
-                    <Card key={stat.label}>
-                        <CardHeader className="flex flex-row items-center justify-between pb-2">
-                            <CardTitle className="text-sm font-medium">{stat.label}</CardTitle>
-                            <stat.icon className={`h-4 w-4 ${stat.color}`} />
+                    <Card key={stat.label} className="glass-panel border-white/5 hover:border-primary/30 transition-all duration-300">
+                        <CardHeader className="flex flex-row items-center justify-between pb-2 bg-transparent">
+                            <CardTitle className="text-sm font-medium text-white/80">{stat.label}</CardTitle>
+                            <div className={`p-2 rounded-lg bg-white/5 ${stat.color}`}>
+                                <stat.icon className="h-4 w-4" />
+                            </div>
                         </CardHeader>
 
-                        <CardContent>
-                            <div className="text-2xl font-bold">{stat.value}</div>
-                            <p className="text-xs text-slate-500">{stat.description}</p>
+                        <CardContent className="bg-transparent">
+                            <div className="text-3xl font-black tracking-tight">{stat.value}</div>
+                            <p className="text-xs text-muted-foreground mt-1">{stat.description}</p>
                         </CardContent>
                     </Card>
                 ))}
             </div>
             
-            <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-10">
+            <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-10">
                 <div className="lg:col-span-6">
                     <RevenueChart data={graphData} />
                 </div>
 
                 <div className="lg:col-span-4">
-                    <Card className="h-full">
-                        <CardHeader>
-                            <CardTitle>Active Loads</CardTitle>
+                    <Card className="h-full glass-panel border-white/5">
+                        <CardHeader className="bg-transparent border-b border-white/5 pb-4">
+                            <CardTitle className="text-white">Active Loads</CardTitle>
                         </CardHeader>
 
-                        <CardContent>
+                        <CardContent className="bg-transparent pt-4">
                             <ActiveLoads loads={activeLoads} />
                         </CardContent>
                     </Card>
                 </div>
             </div>
 
-            <div className="grid gap-4 grid-cols-1">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Recent Loads</CardTitle>
-                        <p className="text-sm text-muted-foreground italic">Overview of the last 7 loads</p>
+            <div className="grid gap-6 grid-cols-1">
+                <Card className="glass-panel border-white/5">
+                    <CardHeader className="bg-transparent border-b border-white/5 pb-4">
+                        <CardTitle className="text-white">Recent Loads</CardTitle>
+                        <p className="text-sm text-white/50 italic mt-1">Overview of the last 7 loads</p>
                     </CardHeader>
 
-                    <CardContent>
+                    <CardContent className="bg-transparent pt-0">
                         <Table>
                             <TableHeader>
                                 <TableRow>
@@ -112,7 +114,7 @@ export default async function Home () {
                                     const rpm = load.miles > 0 ? (load.amount / load.miles).toFixed(2) : "0.00";
 
                                     return (
-                                        <TableRow key={load.id} className="hover:bg-slate-50/80 transition-colors">
+                                        <TableRow key={load.id} className="hover:bg-white/5 border-white/5 transition-colors">
                                             <TableCell className="text-center">#{load.id.slice(-6).toUpperCase()}</TableCell>
                                             
                                             <TableCell className="font-bold text-center">
