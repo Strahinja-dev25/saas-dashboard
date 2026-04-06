@@ -1,11 +1,14 @@
 import { db } from "@/lib/db";
-
-// PRIVREMENO: Ovde staviti pravi ID firme iz baze
-const COMPANY_ID = "firma-1";
+import { getCompanyId } from "@/lib/auth-service";
 
 export const TruckService = {
     // Nalazenje cele liste kamiona. Postoji i search i paginacija
     async getFleet(query: string = "", page: number = 1, limit: number = 20, sortBy: string = "createdAt", sortOrder: "asc" | "desc" = "desc") {
+        const COMPANY_ID = await getCompanyId();
+
+        if (!COMPANY_ID)
+            throw new Error("Unauthorized: No company found for this user.");
+
         const offset = (page - 1) * limit;
 
         const whereClause = {
@@ -41,6 +44,11 @@ export const TruckService = {
 
     // Nalazenje liste za dropdown meni. Manja lista koja vraca samo id kamiona, oznaku kamiona i ime vozaca (Modal)
     async getTrucksForDropdown(includeCurrentTruckId?: string | null) {
+        const COMPANY_ID = await getCompanyId();
+
+        if (!COMPANY_ID)
+            throw new Error("Unauthorized: No company found for this user.");
+
         return db.truck.findMany({
             where: {
                 companyId: COMPANY_ID,
@@ -69,6 +77,11 @@ export const TruckService = {
 
     // Nalazenje jednog kamiona. Edit stranica
     async getTruckById(id: string) {
+        const COMPANY_ID = await getCompanyId();
+
+        if (!COMPANY_ID)
+            throw new Error("Unauthorized: No company found for this user.");
+
         return db.truck.findUnique({
             where: { id, companyId: COMPANY_ID }
         });
@@ -76,6 +89,11 @@ export const TruckService = {
 
     // Kreiranje novog kamiona. New stranica
     async createTruck(data: any) {
+        const COMPANY_ID = await getCompanyId();
+
+        if (!COMPANY_ID)
+            throw new Error("Unauthorized: No company found for this user.");
+
         return db.truck.create({
             data: {
                 ...data,

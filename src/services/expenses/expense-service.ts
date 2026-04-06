@@ -1,10 +1,14 @@
 import { db } from "@/lib/db";
-
-const COMPANY_ID = "firma-1";
+import { getCompanyId } from "@/lib/auth-service";
 
 export const ExpenseService = {
     // 1. Nalazenje svih troskova (Za veliku tabelu sa pretragom i paginacijom)
     async getExpenses(query: string = "", page: number = 1, limit: number = 20, sortBy: string = "date", sortOrder: "asc" | "desc" = "desc") {
+        const COMPANY_ID = await getCompanyId();
+
+        if (!COMPANY_ID)
+            throw new Error("Unauthorized: No company found for this user.");
+        
         const offset = (page - 1) * limit;
 
         const whereClause = {
@@ -35,6 +39,11 @@ export const ExpenseService = {
 
     // 2. Kartice na vrhu stranice (Mesecni presek)
     async getExpenseStats() {
+        const COMPANY_ID = await getCompanyId();
+
+        if (!COMPANY_ID)
+            throw new Error("Unauthorized: No company found for this user.");
+        
         const now = new Date();
         const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
@@ -66,6 +75,11 @@ export const ExpenseService = {
 
     // 3. Kreiranje expense
     async createExpense(data: any) {
+        const COMPANY_ID = await getCompanyId();
+
+        if (!COMPANY_ID)
+            throw new Error("Unauthorized: No company found for this user.");
+
         return db.expense.create({
             data: {
                 amount: data.amount,

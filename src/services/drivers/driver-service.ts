@@ -1,11 +1,14 @@
 import { db } from "@/lib/db";
-
-// PRIVREMENO: Ovde staviti pravi ID firme iz baze
-const COMPANY_ID = "firma-1";
+import { getCompanyId } from "@/lib/auth-service";
 
 export const DriverService = {
     // Lazy reset HOS-a
     async _checkAndResetHOS() {
+        const COMPANY_ID = await getCompanyId();
+
+        if (!COMPANY_ID)
+            throw new Error("Unauthorized: No company found for this user.");
+
         const tenHoursAgo = new Date(Date.now() - 10 * 60 * 60 * 1000);
 
         await db.driver.updateMany({
@@ -23,6 +26,11 @@ export const DriverService = {
     
     // Nalazenje cele liste vozaca. Postoji i search i paginacija
     async getDrivers(query: string = "", page: number = 1, limit: number = 20, sortBy: string = "name", sortOrder: "asc" | "desc" = "asc") {
+        const COMPANY_ID = await getCompanyId();
+
+        if (!COMPANY_ID)
+            throw new Error("Unauthorized: No company found for this user.");
+
         await this._checkAndResetHOS(); // Reset za HOS
 
         const offset = (page - 1) * limit;
@@ -56,6 +64,11 @@ export const DriverService = {
 
     // Nalazenje liste svih vozaca. Ime i id vozaca
     async getAllDriversList() {
+        const COMPANY_ID = await getCompanyId();
+
+        if (!COMPANY_ID)
+            throw new Error("Unauthorized: No company found for this user.");
+
         await this._checkAndResetHOS(); // Reset za HOS
 
         return db.driver.findMany({
@@ -67,6 +80,11 @@ export const DriverService = {
 
     // Nalazenje liste vozaca koji imaju kamion dodeljen
     async getDriversForAssignment() {
+        const COMPANY_ID = await getCompanyId();
+
+        if (!COMPANY_ID)
+            throw new Error("Unauthorized: No company found for this user.");
+
         await this._checkAndResetHOS(); // Reset za HOS
 
         return db.driver.findMany({
@@ -85,6 +103,11 @@ export const DriverService = {
 
     // Nalazenje jednog vozaca. Edit stranica
     async getDriverById(id: string) {
+        const COMPANY_ID = await getCompanyId();
+
+        if (!COMPANY_ID)
+            throw new Error("Unauthorized: No company found for this user.");
+
         await this._checkAndResetHOS(); // Reset za HOS
 
         return db.driver.findUnique({
@@ -94,6 +117,11 @@ export const DriverService = {
 
     // Kreiranje novog vozaca. New stranica
     async createDriver(data: any) {
+        const COMPANY_ID = await getCompanyId();
+
+        if (!COMPANY_ID)
+            throw new Error("Unauthorized: No company found for this user.");
+
         return db.driver.create({
             data: {
                 ...data,

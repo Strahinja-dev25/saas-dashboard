@@ -1,11 +1,15 @@
 import { db } from "@/lib/db";
 import { LoadStatus } from "@prisma/client";
-
-const COMPANY_ID = "firma-1";
+import { getCompanyId } from "@/lib/auth-service";
 
 export const DashboardService = {
     // Podaci za statistiku (4 kartice)
     async getStats() {
+        const COMPANY_ID = await getCompanyId();
+
+        if (!COMPANY_ID)
+            throw new Error("Unauthorized: No company found for this user.");
+
         const [revenueAgg, activeTrucks, totalTrucks, pendingLoads] = await Promise.all([
             // Zbir svih završenih tura (Prihod i Milje za RPM)
             db.load.aggregate({
@@ -32,6 +36,11 @@ export const DashboardService = {
 
     // Podaci za grafikon (Samo delivered ture iz ove godine)
     async getChartData() {
+        const COMPANY_ID = await getCompanyId();
+
+        if (!COMPANY_ID)
+            throw new Error("Unauthorized: No company found for this user.");
+
         const currentYear = new Date().getFullYear();
         
         const loads = await db.load.findMany({
@@ -56,6 +65,11 @@ export const DashboardService = {
 
     // Aktivne ture (Za mali deo od 5 tura na sredini ekrana)
     async getActiveLoadsList(limit: number = 5) {
+        const COMPANY_ID = await getCompanyId();
+
+        if (!COMPANY_ID)
+            throw new Error("Unauthorized: No company found for this user.");
+
         return db.load.findMany({
             where: {
                 companyId: COMPANY_ID,
@@ -73,6 +87,11 @@ export const DashboardService = {
 
     // Nedavne transakcije (Za veliku tabelu od 7 redova na dnu)
     async getRecentTransactions(limit: number = 7) {
+        const COMPANY_ID = await getCompanyId();
+
+        if (!COMPANY_ID)
+            throw new Error("Unauthorized: No company found for this user.");
+
         return db.load.findMany({
             where: { companyId: COMPANY_ID },
             take: limit,

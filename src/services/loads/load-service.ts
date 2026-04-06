@@ -1,12 +1,15 @@
 import { db } from "@/lib/db";
 import { LoadStatus, TruckStatus } from "@prisma/client";
-
-// PRIVREMENO: Ovde staviti pravi ID firme iz baze
-const COMPANY_ID = "firma-1";
+import { getCompanyId } from "@/lib/auth-service";
 
 export const LoadService = {
     // Nalazenje cele liste aktivnih (trenutnih) tura. Postoji i search i paginacija (Active loads tabela)
     async getActiveLoads(query: string = "", page: number = 1, limit: number = 20, sortBy: string = "createdAt", sortOrder: "asc" | "desc" = "asc") {
+        const COMPANY_ID = await getCompanyId();
+
+        if (!COMPANY_ID)
+            throw new Error("Unauthorized: No company found for this user.");
+        
         const offset = (page - 1) * limit;
         const activeStatuses = [LoadStatus.PENDING, LoadStatus.ASSIGNED, LoadStatus.IN_TRANSIT];
 
@@ -46,6 +49,11 @@ export const LoadService = {
     },
 
     async getLoadById(id: string) {
+        const COMPANY_ID = await getCompanyId();
+
+        if (!COMPANY_ID)
+            throw new Error("Unauthorized: No company found for this user.");
+
         return db.load.findUnique({
             where: { id, companyId: COMPANY_ID }
         });
@@ -53,6 +61,11 @@ export const LoadService = {
 
     // Kreiranje nove ture. New stranica
     async createLoad(data: any) {
+        const COMPANY_ID = await getCompanyId();
+
+        if (!COMPANY_ID)
+            throw new Error("Unauthorized: No company found for this user.");
+
         const assignedTruckId = data.truckId === "unassigned" ? null : data.truckId;
         const initialStatus = assignedTruckId ? LoadStatus.ASSIGNED : LoadStatus.PENDING;
 
@@ -220,6 +233,11 @@ export const LoadService = {
 
     // Nalazenje tura koje su DELIVERED i CANCELLED
     async getLoadHistory(query: string = "", page: number = 1, limit: number = 20) {
+        const COMPANY_ID = await getCompanyId();
+
+        if (!COMPANY_ID)
+            throw new Error("Unauthorized: No company found for this user.");
+
         const offset = (page - 1) * limit;
         const historyStatuses = [LoadStatus.DELIVERED, LoadStatus.CANCELLED];
 
