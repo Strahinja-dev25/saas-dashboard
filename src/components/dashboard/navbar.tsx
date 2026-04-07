@@ -4,17 +4,22 @@ import { Search, Store, LayoutDashboard } from "lucide-react";
 
 import { ThemeToggle } from "@/components/theme-toggle";
 import { UserButton } from "@clerk/nextjs";
+import { DashboardService } from "@/services/dashboard-service";
 
-export function Navbar() {
+export async function Navbar() {
+    const companyInfo = await DashboardService.getCompanyInfo();
+
     return (
-        <header className="border-b bg-white h-16 shadow-sm">
+        <header className="border-b bg-background h-16 shadow-sm">
             <div className="grid grid-cols-4 items-center h-full px-6 gap-4">
                 <div className="flex items-center gap-2">
                     <div className="bg-sky-600 p-1.5 rounded-lg">
                         <LayoutDashboard className="h-5 w-5 text-white" />
                     </div>
-                    <span className="font-bold text-xl tracking-tight hidden lg:block">
-                        SaaS<span className="text-sky-600">Admin</span>
+                    <span className="text-xl hidden lg:block">
+                        <p className="text-sm font-medium text-slate-500">
+                            Company: <span className="text-sky-600 font-bold">{companyInfo?.name || "Independent Fleet"}</span>
+                        </p>
                     </span>
                 </div>
 

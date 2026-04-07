@@ -74,7 +74,7 @@ export default async function ExpensesPage({ searchParams }: PageProps) {
                         <ReceiptText className="h-4 w-4 text-slate-400" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-slate-800">${stats.total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+                        <div className="text-2xl font-bold">${stats.total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
                     </CardContent>
                 </Card>
                 <Card>
@@ -98,21 +98,21 @@ export default async function ExpensesPage({ searchParams }: PageProps) {
             </div>
 
             {/* Tabela troskova */}
-            <div className="rounded-md border bg-white shadow-sm overflow-hidden">
+            <div className="rounded-md border bg-card text-card-foreground shadow-sm overflow-hidden">
                 <Table>
-                    <TableHeader className="bg-slate-50">
+                    <TableHeader className="bg-muted/50">
                         <TableRow>
-                            <TableHead className="w-24 text-center font-bold text-slate-700 text-[11px] uppercase">ID</TableHead>
-                            <TableHead className="w-32 text-center font-bold text-slate-700">
+                            <TableHead className="w-24 text-center font-bold text-[11px] uppercase">ID</TableHead>
+                            <TableHead className="w-32 text-center font-bold">
                                 <Link href={`?query=${query}&page=${currentPage}&sort=date&order=${sortOrder === 'asc' ? 'desc' : 'asc'}`} className="flex items-center justify-center gap-1 hover:text-sky-600 transition-colors">
                                     Date <ArrowUpDown className="h-3 w-3" />
                                 </Link>
                             </TableHead>
-                            <TableHead className="w-32 text-center font-bold text-slate-700">Truck</TableHead>
-                            <TableHead className="w-40 text-center font-bold text-slate-700">Category</TableHead>
-                            <TableHead className="w-40 text-center font-bold text-slate-700">Vendor / Location</TableHead>
-                            <TableHead className="w-40 text-center font-bold text-slate-700">Linked Load</TableHead>
-                            <TableHead className="w-32 text-center font-bold text-slate-700">
+                            <TableHead className="w-32 text-center font-bold">Truck</TableHead>
+                            <TableHead className="w-40 text-center font-bold">Category</TableHead>
+                            <TableHead className="w-40 text-center font-bold">Vendor / Location</TableHead>
+                            <TableHead className="w-40 text-center font-bold">Linked Load</TableHead>
+                            <TableHead className="w-32 text-center font-bold">
                                 <Link href={`?query=${query}&page=${currentPage}&sort=amount&order=${sortOrder === 'asc' ? 'desc' : 'asc'}`} className="flex items-center justify-center gap-1 hover:text-sky-600 transition-colors">
                                     Amount <ArrowUpDown className="h-3 w-3" />
                                 </Link>
@@ -123,9 +123,9 @@ export default async function ExpensesPage({ searchParams }: PageProps) {
 
                     <TableBody>
                         {expenses.map((expense) => (
-                            <TableRow key={expense.id} className="hover:bg-slate-50/50">
-                                <TableCell className="text-center font-mono text-xs text-slate-500">#{expense.id.slice(-6).toUpperCase()}</TableCell>
-                                <TableCell className="text-center text-sm text-slate-600">
+                            <TableRow key={expense.id} className="trasitions-colors">
+                                <TableCell className="text-center font-mono text-xs">#{expense.id.slice(-6).toUpperCase()}</TableCell>
+                                <TableCell className="text-center text-sm">
                                     {new Date(expense.date).toLocaleDateString()}
                                 </TableCell>
                                 <TableCell className="text-center font-bold text-sky-700">{expense.truck.unitNumber}</TableCell>

@@ -58,7 +58,7 @@ export function ExpenseModal({ trucks, loads }: ExpenseModalProps) {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button className="text-white font-semibold cursor-pointer">
+                <Button className="font-semibold cursor-pointer">
                     <Plus className="h-4 w-4 mr-2" /> Add Manual Expense
                 </Button>
             </DialogTrigger>

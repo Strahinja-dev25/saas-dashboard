@@ -57,7 +57,7 @@ export default async function Home () {
                 { stats.map((stat) => (
                     <Card key={stat.label} className="glass-panel border-white/5 hover:border-primary/30 transition-all duration-300">
                         <CardHeader className="flex flex-row items-center justify-between pb-2 bg-transparent">
-                            <CardTitle className="text-sm font-medium text-white/80">{stat.label}</CardTitle>
+                            <CardTitle className="text-sm font-medium">{stat.label}</CardTitle>
                             <div className={`p-2 rounded-lg bg-white/5 ${stat.color}`}>
                                 <stat.icon className="h-4 w-4" />
                             </div>
@@ -79,7 +79,7 @@ export default async function Home () {
                 <div className="lg:col-span-4">
                     <Card className="h-full glass-panel border-white/5">
                         <CardHeader className="bg-transparent border-b border-white/5 pb-4">
-                            <CardTitle className="text-white">Active Loads</CardTitle>
+                            <CardTitle>Active Loads</CardTitle>
                         </CardHeader>
 
                         <CardContent className="bg-transparent pt-4">
@@ -92,8 +92,8 @@ export default async function Home () {
             <div className="grid gap-6 grid-cols-1">
                 <Card className="glass-panel border-white/5">
                     <CardHeader className="bg-transparent border-b border-white/5 pb-4">
-                        <CardTitle className="text-white">Recent Loads</CardTitle>
-                        <p className="text-sm text-white/50 italic mt-1">Overview of the last 7 loads</p>
+                        <CardTitle>Recent Loads</CardTitle>
+                        <p className="text-sm text-muted-foreground italic mt-1">Overview of the last 7 loads</p>
                     </CardHeader>
 
                     <CardContent className="bg-transparent pt-0">
@@ -114,7 +114,7 @@ export default async function Home () {
                                     const rpm = load.miles > 0 ? (load.amount / load.miles).toFixed(2) : "0.00";
 
                                     return (
-                                        <TableRow key={load.id} className="hover:bg-white/5 border-white/5 transition-colors">
+                                        <TableRow key={load.id} className="transition-colors">
                                             <TableCell className="text-center">#{load.id.slice(-6).toUpperCase()}</TableCell>
                                             
                                             <TableCell className="font-bold text-center">

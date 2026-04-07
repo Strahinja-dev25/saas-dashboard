@@ -52,11 +52,11 @@ export default async function FleetPage ({ searchParams }: PageProps) {
 
             <hr />
             
-            <div className="rounded-md border bg-white">
+            <div className="rounded-md border bg-card text-card-foreground">
                 <Table>
-                    <TableHeader>
+                    <TableHeader className="bg-muted/50">
                         <TableRow>
-                            <TableHead className="w-40 text-center font-bold text-slate-700">
+                            <TableHead className="w-40 text-center font-bold">
                                 <Link 
                                     href={`?query=${query}&page=${currentPage}&sort=unitNumber&order=${sortOrder === 'asc' ? 'desc' : 'asc'}`}
                                     className="flex justify-center items-center gap-1 hover:text-sky-600 transition-colors"
@@ -66,9 +66,9 @@ export default async function FleetPage ({ searchParams }: PageProps) {
                                 </Link>
                             </TableHead>
                             
-                            <TableHead className="text-center font-bold text-slate-700">Driver</TableHead>
+                            <TableHead className="text-center font-bold">Driver</TableHead>
 
-                            <TableHead className="w-40 text-center font-bold text-slate-700">
+                            <TableHead className="w-40 text-center font-bold">
                                 <Link 
                                     href={`?query=${query}&page=${currentPage}&sort=status&order=${sortOrder === 'asc' ? 'desc' : 'asc'}`}
                                     className="flex items-center justify-center gap-1 hover:text-sky-600 transition-colors"
@@ -78,9 +78,9 @@ export default async function FleetPage ({ searchParams }: PageProps) {
                                 </Link>
                             </TableHead>
 
-                            <TableHead className="text-center font-bold text-slate-700">Location</TableHead>
-                            <TableHead className="w-40 text-center font-bold text-slate-700">Equipment</TableHead>
-                            <TableHead className="w-30 text-center font-bold text-slate-700">Actions</TableHead>
+                            <TableHead className="text-center font-bold">Location</TableHead>
+                            <TableHead className="w-40 text-center font-bold">Equipment</TableHead>
+                            <TableHead className="w-30 text-center font-bold">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
 
@@ -95,7 +95,7 @@ export default async function FleetPage ({ searchParams }: PageProps) {
                                     <TableCell className="text-center">
                                         {truck?.driver?.name ? (
                                             <div className="flex items-center justify-center gap-1">
-                                                <span className="font-semibold text-slate-900">
+                                                <span className="font-semibold">
                                                     {truck.driver.name}
                                                 </span>
                                                 <AssignDriverModal 

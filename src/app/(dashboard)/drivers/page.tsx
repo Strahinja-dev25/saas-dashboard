@@ -69,13 +69,13 @@ export default async function DriversPage({ searchParams }: PageProps) {
 
             <hr />
             
-            <div className="rounded-md border bg-white">
+            <div className="rounded-md border bg-card text-card-foreground">
                 <Table>
-                    <TableHeader>
+                    <TableHeader className="bg-muted/50">
                         <TableRow>
-                            <TableHead className="w-60 text-center font-bold text-slate-700">Name</TableHead>
-                            <TableHead className="text-center font-bold text-slate-700">Email</TableHead>
-                            <TableHead className="w-60 text-center font-bold text-slate-700">
+                            <TableHead className="w-60 text-center font-bold">Name</TableHead>
+                            <TableHead className="text-center font-bold">Email</TableHead>
+                            <TableHead className="w-60 text-center font-bold">
                                 <Link 
                                     href={`?query=${query}&page=${currentPage}&sort=hosAvailable&order=${sortOrder === 'asc' ? 'desc' : 'asc'}`}
                                     className="flex items-center justify-center gap-1 hover:text-sky-600 transition-colors mx-auto"
@@ -84,9 +84,9 @@ export default async function DriversPage({ searchParams }: PageProps) {
                                     <ArrowUpDown className="h-3 w-3" />
                                 </Link>
                             </TableHead>
-                            <TableHead className="w-40 text-center font-bold text-slate-700">ELD Status</TableHead>
-                            <TableHead className="text-center font-bold text-slate-700">Joined Date</TableHead>
-                            <TableHead className="w-40 text-center font-bold text-slate-700">Actions</TableHead>
+                            <TableHead className="w-40 text-center font-bold">ELD Status</TableHead>
+                            <TableHead className="text-center font-bold">Joined Date</TableHead>
+                            <TableHead className="w-40 text-center font-bold">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
 
@@ -95,7 +95,7 @@ export default async function DriversPage({ searchParams }: PageProps) {
                         <TableRow key={driver.id}>
                             <TableCell className="text-center font-medium">
                                 <div className="flex items-center gap-2 justify-center">
-                                    <span className="text-slate-900">{driver.name}</span>
+                                    <span className="font-semibold">{driver.name}</span>
                                     {driver.isDriving && (
                                         <div className="flex items-center text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">
                                             <Gauge className="h-4 w-4" />

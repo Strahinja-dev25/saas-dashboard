@@ -74,15 +74,15 @@ export default async function LoadsPage ({ searchParams }: PageProps) {
 
             <hr />
 
-            <div className="rounded-md border bg-white shadow-sm overflow-hidden">
+            <div className="rounded-md border bg-card text-card-foreground shadow-sm overflow-hidden">
                 <Table>
-                    <TableHeader className="bg-slate-50">
+                    <TableHeader className="bg-muted/50">
                         <TableRow>
-                            <TableHead className="w-40 text-center font-bold text-slate-700">Load ID</TableHead>
-                            <TableHead className="w-40 text-center font-bold text-slate-700">Assigned Truck</TableHead>
-                            <TableHead className="w-40 text-center font-bold text-slate-700">Driver</TableHead>
+                            <TableHead className="w-40 text-center font-bold">Load ID</TableHead>
+                            <TableHead className="w-40 text-center font-bold">Assigned Truck</TableHead>
+                            <TableHead className="w-40 text-center font-bold">Driver</TableHead>
 
-                            <TableHead className="w-40 text-center font-bold text-slate-700">
+                            <TableHead className="w-40 text-center font-bold">
                                 <Link 
                                     href={`?query=${query}&page=${currentPage}&sort=amount&order=${sortOrder === 'asc' ? 'desc' : 'asc'}`}
                                     className="flex items-center justify-center gap-1 hover:text-sky-600 transition-colors mx-auto"
@@ -92,7 +92,7 @@ export default async function LoadsPage ({ searchParams }: PageProps) {
                                 </Link>
                             </TableHead>
 
-                            <TableHead className="w-40 text-center font-bold text-slate-700">
+                            <TableHead className="w-40 text-center font-bold">
                                 <Link 
                                     href={`?query=${query}&page=${currentPage}&sort=status&order=${sortOrder === 'asc' ? 'desc' : 'asc'}`}
                                     className="flex items-center justify-center gap-1 hover:text-sky-600 transition-colors mx-auto"
@@ -102,14 +102,14 @@ export default async function LoadsPage ({ searchParams }: PageProps) {
                                 </Link>
                             </TableHead>
 
-                            <TableHead className="w-40 text-center font-bold text-slate-700">Date</TableHead>
-                            <TableHead className="w-40 text-center font-bold text-slate-700">Actions</TableHead>
+                            <TableHead className="w-40 text-center font-bold">Date</TableHead>
+                            <TableHead className="w-40 text-center font-bold">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
 
                     <TableBody>
                         {loads.map((load) => (
-                            <TableRow key={load.id} className="hover:bg-slate-50/50 transition-colors">
+                            <TableRow key={load.id} className="transition-colors">
                                 <TableCell className="text-center font-mono text-xs text-slate-500">
                                     #{load.id.slice(-6).toUpperCase()}
                                 </TableCell>
@@ -121,7 +121,7 @@ export default async function LoadsPage ({ searchParams }: PageProps) {
                                 <TableCell className="text-center">
                                     {load.truck?.driver ? (
                                         <HoverCard openDelay={300} closeDelay={100}>
-                                            <HoverCardTrigger className="font-semibold text-slate-700 hover:text-sky-600 transition-colors cursor-default">
+                                            <HoverCardTrigger className="font-semibold hover:text-sky-600 transition-colors cursor-default">
                                                 {load.truck.driver.name}
                                             </HoverCardTrigger>
                                             

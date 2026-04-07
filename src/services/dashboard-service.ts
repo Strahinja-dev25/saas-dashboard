@@ -110,5 +110,16 @@ export const DashboardService = {
                 }
             }
         });
+    },
+
+    // Vraca ime trenutne kompanije po ID-u
+    async getCompanyInfo() {
+        const COMPANY_ID = await getCompanyId();
+        if (!COMPANY_ID) return null;
+
+        return db.company.findUnique({
+            where: { id: COMPANY_ID },
+            select: { name: true }
+        });
     }
 };

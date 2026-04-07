@@ -40,16 +40,16 @@ export default async function LoadHistoryPage({ searchParams }: PageProps) {
 
             <hr />
             
-            <div className="rounded-md border bg-white shadow-sm overflow-hidden opacity-90"> {/* Blago providno da odaje utisak arhive */}
+            <div className="rounded-md border bg-card text-card-foreground shadow-sm overflow-hidden opacity-90"> {/* Blago providno da odaje utisak arhive */}
                 <Table>
-                    <TableHeader className="bg-slate-50">
+                    <TableHeader className="bg-muted/50">
                         <TableRow>
                             <TableHead className="w-32 text-center font-bold text-slate-700 uppercase text-[11px]">Load ID</TableHead>
-                            <TableHead className="font-bold text-slate-700">Truck & Driver</TableHead>
-                            <TableHead className="text-right font-bold text-slate-700">Final Revenue</TableHead>
+                            <TableHead className="text-center font-bold text-slate-700">Truck & Driver</TableHead>
+                            <TableHead className="text-center font-bold text-slate-700">Final Revenue</TableHead>
                             <TableHead className="text-center font-bold text-slate-700">Status</TableHead>
-                            <TableHead className="text-right font-bold text-slate-700">Completion Date</TableHead>
-                            <TableHead className="w-24 text-right font-bold text-slate-700">Actions</TableHead>
+                            <TableHead className="text-center font-bold text-slate-700">Completion Date</TableHead>
+                            <TableHead className="w-24 text-center font-bold text-slate-700">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
 
@@ -60,7 +60,7 @@ export default async function LoadHistoryPage({ searchParams }: PageProps) {
                                 #{load.id.slice(-6).toUpperCase()}
                             </TableCell>
 
-                            <TableCell>
+                            <TableCell className="text-center">
                                 <div className="flex flex-col">
                                     <span className="font-medium text-slate-700">
                                         {load.truck?.unitNumber || "N/A"}
@@ -71,11 +71,11 @@ export default async function LoadHistoryPage({ searchParams }: PageProps) {
                                 </div>
                             </TableCell>
 
-                            <TableCell className="text-right font-bold text-slate-600">
+                            <TableCell className="text-center font-bold text-slate-600">
                                 ${load.amount.toLocaleString()}
                             </TableCell>
 
-                            <TableCell className="text-center">
+                            <TableCell className="text-center w-32">
                                 {load.status === LoadStatus.DELIVERED ? (
                                     <span className="flex items-center justify-center gap-1 text-emerald-600 text-[10px] font-bold uppercase bg-emerald-50 px-2 py-1 rounded">
                                         <CheckCircle2 className="h-3 w-3" /> Delivered
@@ -87,7 +87,7 @@ export default async function LoadHistoryPage({ searchParams }: PageProps) {
                                 )}
                             </TableCell>
 
-                            <TableCell className="text-right text-xs text-slate-500">
+                            <TableCell className="text-center text-xs text-slate-500">
                                 {new Date(load.updatedAt).toLocaleDateString()}
                             </TableCell>
 
