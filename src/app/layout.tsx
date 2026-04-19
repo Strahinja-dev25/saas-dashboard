@@ -5,6 +5,8 @@ import { Toaster } from "@/components/ui/sonner";
 import { ClerkProvider } from '@clerk/nextjs'
 import { ThemeProvider } from "@/components/theme-provider"
 
+import { Analytics } from '@vercel/analytics/react';
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -31,7 +33,8 @@ export default function RootLayout({
         <body className={`${geistSans.variable} ${geistMono.variable} antialiased h-full`}>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
             {children}
-
+            
+            <Analytics /> {/* Analitika ide ovde */}
             <Toaster richColors position="top-right" />
           </ThemeProvider>
         </body>
