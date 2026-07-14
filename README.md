@@ -72,13 +72,13 @@ DATABASE_URL="postgresql://user:password@host:port/db_name"
 
 # Clerk Authentication
 
-NEXT*PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test*...
-CLERK*SECRET_KEY=sk_test*...
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
+CLERK_SECRET_KEY=sk_test_...
 NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
-NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
-NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL=/
-NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL=/
+NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL=/dashboard
 \`\`\`
+
+> **Note:** There is no public sign-up. All accounts are created manually by an administrator (see below).
 
 ### 4. Initialize Database
 
@@ -93,7 +93,83 @@ npx prisma generate
 \`\`\`bash
 npm run dev
 \`\`\`
-Open[http://localhost:3000](http://localhost:3000) in your browser. The app will automatically redirect you to the Clerk login screen.
+Open [http://localhost:3000](http://localhost:3000) in your browser. Unauthenticated visitors see the public landing page at `/`. After sign-in, users are redirected to `/dashboard`.
+
+---
+
+## 🔐 Admin: Manual User Onboarding
+
+This application has **no self-service sign-up**. Every dispatcher account must be created manually in two places: **Clerk** (authentication) and **PostgreSQL** (company access).
+
+### What goes where
+
+| Field | Clerk | Database (`User` table) |
+|-------|-------|-------------------------|
+| Username | ✅ Required | ✅ Required (must match) |
+| Password | ✅ Required | ❌ Never stored in DB |
+| Company ID | ❌ | ✅ Required (`companyId`) |
+| Clerk User ID | Auto-generated | ✅ Required (`clerkId`) |
+| Role | ❌ | ✅ Required (`ADMIN`, `DISPATCHER`, or `DRIVER`) |
+| Email | ❌ Not used | ❌ Not used |
+
+> **Username uniqueness:** Usernames must be unique across the entire Clerk application. Two companies cannot share the same username (e.g. use `abc_jovan` and `xyz_jovan`).
+
+### Step-by-step process
+
+#### 1. Ensure the company exists in the database
+
+If the company is new, create a row in the `Company` table first (via Supabase SQL editor, Prisma Studio, or SQL):
+
+\`\`\`sql
+INSERT INTO "Company" (id, name, "createdAt", "updatedAt")
+VALUES ('firma-2', 'ABC Transport', NOW(), NOW());
+\`\`\`
+
+Note the `id` value — you will need it as `companyId` when creating the user.
+
+#### 2. Create the user in Clerk Dashboard
+
+1. Go to [Clerk Dashboard](https://dashboard.clerk.com) → **Users** → **Create user**
+2. Enter the **username** (e.g. `abc_dispatcher1`)
+3. After creation, open the user profile and click **Set password** to assign their password
+4. Copy the **User ID** from the profile (format: `user_2abc...`) — this is the `clerkId`
+
+Also confirm in **Configure → User & Authentication**:
+- **Username** and **Password** are enabled
+- **Email** sign-up is disabled
+- **Sign-up** / self-registration is restricted (admin-only access)
+
+#### 3. Create the matching row in PostgreSQL
+
+Insert a row into the `User` table linking the Clerk account to a company:
+
+\`\`\`sql
+INSERT INTO "User" (id, username, "clerkId", "companyId", role, "createdAt", "updatedAt")
+VALUES (
+  'clxxxxxxxx',           -- generate a unique cuid or use gen_random_uuid()
+  'abc_dispatcher1',      -- same username as in Clerk
+  'user_2abc...',         -- Clerk User ID from step 2
+  'firma-2',              -- Company id from step 1
+  'DISPATCHER',
+  NOW(),
+  NOW()
+);
+\`\`\`
+
+#### 4. User can now log in
+
+1. Visit `/` → click **Uloguj se**
+2. Sign in at `/sign-in` with username + password
+3. Redirected to `/dashboard` with data scoped to their `companyId`
+
+### Route overview
+
+| URL | Who can access | Purpose |
+|-----|----------------|---------|
+| `/` | Everyone (public) | Landing page |
+| `/sign-in` | Everyone (public) | Login |
+| `/dashboard` | Authenticated only | Dashboard overview |
+| `/fleet`, `/loads`, etc. | Authenticated only | App modules |
 
 ---
 

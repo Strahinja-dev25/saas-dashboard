@@ -19,7 +19,7 @@ export async function createTruck (rawData: any) {
     await TruckService.createTruck(validatedData);
 
     revalidatePath("/fleet");
-    revalidatePath("/");
+    revalidatePath("/dashboard");
 
     redirect("/fleet");
 }
@@ -30,7 +30,7 @@ export async function updateTruck (id:string, rawData: any) {
     await TruckService.updateTruck(id, validatedData);
 
     revalidatePath("/fleet");
-    revalidatePath("/");
+    revalidatePath("/dashboard");
 
     redirect("/fleet");
 }
@@ -41,7 +41,7 @@ export async function assignDriverToTruck (truckId: string, driverId: string | u
         await TruckService.assignDriver(truckId, driverId);
 
         revalidatePath("/fleet");
-        revalidatePath("/");
+        revalidatePath("/dashboard");
     }
     catch (error: any) {
         throw new Error(error?.message || "Failed to assign driver.");
@@ -52,7 +52,7 @@ export async function deleteTruck (id: string) {
     await TruckService.deleteTruck(id);
 
     revalidatePath("/fleet");
-    revalidatePath("/");
+    revalidatePath("/dashboard");
 }
 
 // Driver services
@@ -94,7 +94,7 @@ export async function createLoad (rawData: any) {
     await LoadService.createLoad({...validatedData, status: initialStatus});
 
     revalidatePath("/loads");
-    revalidatePath("/");
+    revalidatePath("/dashboard");
 
     redirect("/loads");
 }
@@ -104,7 +104,7 @@ export async function updateLoadData (id: string, rawData: any) {
     await LoadService.updateLoadData(id, validatedData);
 
     revalidatePath("/loads");
-    revalidatePath("/");
+    revalidatePath("/dashboard");
 
     redirect("/loads");
 }
@@ -114,14 +114,14 @@ export async function updateLoadStatus (id: string, status: LoadStatus) {
 
     revalidatePath("/loads");
     revalidatePath("/fleet");
-    revalidatePath("/");
+    revalidatePath("/dashboard");
 }
 
 export async function deleteLoad (id: string) {
     await LoadService.deleteLoad(id);
 
     revalidatePath("/loads");
-    revalidatePath("/");
+    revalidatePath("/dashboard");
 }
 
 // Expense services

@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { LayoutDashboard, Truck, Map, Users, Fuel, Settings } from "lucide-react";
 
 const routes = [
-  { label: "Overview", icon: LayoutDashboard, href: "/" },
+  { label: "Overview", icon: LayoutDashboard, href: "/dashboard" },
   { label: "Fleet Status", icon: Truck, href: "/fleet" },
   { label: "Active Loads", icon: Map, href: "/loads" },
   { label: "Drivers", icon: Users, href: "/drivers" },
@@ -25,7 +25,7 @@ export function Sidebar() {
       
       <nav className="flex-1 space-y-2">
         {routes.map((route) => {
-          const isActive = pathname === route.href || (route.href !== "/" && pathname.startsWith(route.href));
+          const isActive = pathname === route.href || (route.href !== "/dashboard" && pathname.startsWith(route.href));
 
           return (
             <Link

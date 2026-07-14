@@ -7,7 +7,7 @@ import { RevenueChart } from "@/components/dashboard/revenue-chart";
 import { ActiveLoads } from "@/components/dashboard/active-loads";
 import { StatItem, DetailedLoadItem } from "@/types/index";
 
-export default async function Home () {
+export default async function DashboardPage () {
     // Za 4 kartice
     const { totalRevenue, activeTrucks, totalTrucks, pendingLoads, rpm } = await DashboardService.getStats();
 
