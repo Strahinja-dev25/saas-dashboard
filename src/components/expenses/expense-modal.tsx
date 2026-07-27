@@ -107,18 +107,18 @@ export function ExpenseModal({ trucks, loads }: ExpenseModalProps) {
                     </div>
 
                     {/* RED 3: Kamion i Tura */}
-                    <div className="space-y-2 p-3 bg-slate-50 rounded-lg border border-slate-100">
+                    <div className="space-y-2 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800">
                         <Label>Assigned To</Label>
                         
                         <Select value={formData.truckId} onValueChange={(val) => setFormData({ ...formData, truckId: val, loadId: "none" })} disabled={isPending}>
-                            <SelectTrigger className="mb-2 bg-white"><SelectValue placeholder="Select Unit #" /></SelectTrigger>
+                            <SelectTrigger className="mb-2 bg-white dark:bg-slate-950"><SelectValue placeholder="Select Unit #" /></SelectTrigger>
                             <SelectContent>
                                 {trucks.map(t => <SelectItem key={t.id} value={t.id}>{t.unitNumber}</SelectItem>)}
                             </SelectContent>
                         </Select>
 
                         <Select value={formData.loadId} onValueChange={(val) => setFormData({ ...formData, loadId: val })} disabled={isPending || !formData.truckId || availableLoads.length === 0}>
-                            <SelectTrigger className="bg-white"><SelectValue placeholder={availableLoads.length === 0 ? "No active loads for this truck" : "Attach to Load (Optional)"} /></SelectTrigger>
+                            <SelectTrigger className="bg-white dark:bg-slate-950"><SelectValue placeholder={availableLoads.length === 0 ? "No active loads for this truck" : "Attach to Load (Optional)"} /></SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="none">- General Truck Expense -</SelectItem>
                                 {availableLoads.map(l => <SelectItem key={l.id} value={l.id}>Load #{l.id.slice(-6).toUpperCase()}</SelectItem>)}

@@ -127,7 +127,7 @@ export default async function LoadsPage({ searchParams }: PageProps) {
                                             </HoverCardTrigger>
 
                                             {/* Iskacuci prozor */}
-                                            <HoverCardContent className="w-64 bg-white p-4 shadow-xl border-slate-200 text-left animate-in zoom-in-95 fade-in-0 duration-150">
+                                            <HoverCardContent className="w-64 bg-white dark:bg-slate-900 p-4 shadow-xl border-slate-200 dark:border-slate-800 text-left animate-in zoom-in-95 fade-in-0 duration-150">
                                                 <div className="space-y-3">
                                                     <h4 className="text-sm font-semibold border-b pb-2 flex items-center justify-between">
                                                         Driver Info
