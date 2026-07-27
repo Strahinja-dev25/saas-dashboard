@@ -13,7 +13,7 @@ const routes = [
   { label: "Company Profile", icon: Settings, href: "/settings" },
 ];
 
-export function Sidebar() {
+export function Sidebar({ role = "DISPATCHER" }: { role?: string }) {
   const pathname = usePathname();
 
   return (
@@ -24,7 +24,12 @@ export function Sidebar() {
       </div>
       
       <nav className="flex-1 space-y-2">
-        {routes.map((route) => {
+        {routes
+          .filter(route => {
+              if (route.href === "/settings" && role !== "ADMIN") return false;
+              return true;
+          })
+          .map((route) => {
           const isActive = pathname === route.href || (route.href !== "/dashboard" && pathname.startsWith(route.href));
 
           return (

@@ -9,6 +9,7 @@ import { DriverService } from "@/services/drivers/driver-service";
 import { LoadService } from "@/services/loads/load-service";
 import { LoadStatus } from "@prisma/client";
 import { ExpenseService } from "@/services/expenses/expense-service";
+import { getAuthContext } from "@/lib/auth-service";
 
 
 // Truck services
@@ -125,6 +126,9 @@ export async function deleteLoad (id: string) {
 
 // Expense services
 export async function createExpense(rawData: any) {
+    const auth = await getAuthContext();
+    if (auth?.role !== "ADMIN") throw new Error("Samo ADMIN može dodavati troškove.");
+
     const validatedData = expenseSchema.parse(rawData);
 
     await ExpenseService.createExpense(validatedData);
@@ -133,6 +137,9 @@ export async function createExpense(rawData: any) {
 }
 
 export async function deleteExpense(id: string) {
+    const auth = await getAuthContext();
+    if (auth?.role !== "ADMIN") throw new Error("Samo ADMIN može brisati troškove.");
+
     await ExpenseService.deleteExpense(id);
 
     revalidatePath("/expenses");
@@ -140,6 +147,9 @@ export async function deleteExpense(id: string) {
 
 // Company / Settings services
 export async function updateCompanySettings(rawData: any) {
+    const auth = await getAuthContext();
+    if (auth?.role !== "ADMIN") throw new Error("Samo ADMIN može menjati profil kompanije.");
+
     // Ako je email ostavljen prazan, zod "email" ga odbija. Convert to null or empty string validacija je vec podesena u semi (.or(z.literal("")))
     const validatedData = companySchema.parse(rawData);
 

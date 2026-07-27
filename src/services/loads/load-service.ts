@@ -59,7 +59,6 @@ export const LoadService = {
         });
     },
 
-    // Kreiranje nove ture. New stranica
     async createLoad(data: any) {
         const COMPANY_ID = await getCompanyId();
 
@@ -67,6 +66,13 @@ export const LoadService = {
             throw new Error("Unauthorized: No company found for this user.");
 
         const assignedTruckId = data.truckId === "unassigned" ? null : data.truckId;
+        
+        // SECURITY FIX (IDOR): Proveri da li prosleđeni kamion pripada ovoj firmi
+        if (assignedTruckId) {
+            const truck = await db.truck.findFirst({ where: { id: assignedTruckId, companyId: COMPANY_ID } });
+            if (!truck) throw new Error("Invalid truck or unauthorized access.");
+        }
+
         const initialStatus = assignedTruckId ? LoadStatus.ASSIGNED : LoadStatus.PENDING;
 
         return db.load.create({
@@ -202,6 +208,12 @@ export const LoadService = {
             throw new Error("Load not found");
 
         const assignedTruckId = rawData.truckId === "unassigned" ? null : rawData.truckId;
+        
+        // SECURITY FIX (IDOR): Proveri da li novi prosleđeni kamion pripada ovoj firmi
+        if (assignedTruckId && assignedTruckId !== load.truckId) {
+            const truck = await db.truck.findFirst({ where: { id: assignedTruckId, companyId: COMPANY_ID } });
+            if (!truck) throw new Error("Invalid truck or unauthorized access.");
+        }
         
         if((load.status === LoadStatus.IN_TRANSIT || load.status === LoadStatus.DELIVERED) && load.truckId !== assignedTruckId)
             throw new Error("Action denied: Cannot change truck while load is actively in transit or delivered.");

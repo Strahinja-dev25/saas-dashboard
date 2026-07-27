@@ -11,6 +11,7 @@ import { ExpenseService } from "@/services/expenses/expense-service";
 import { TruckService } from "@/services/fleet/truck-service";
 import { LoadService } from "@/services/loads/load-service";
 import { deleteExpense } from "@/lib/actions";
+import { getAuthContext } from "@/lib/auth-service";
 
 interface PageProps {
     searchParams: Promise<{ 
@@ -23,6 +24,8 @@ interface PageProps {
 
 export default async function ExpensesPage({ searchParams }: PageProps) {
     const ITEMS_PER_PAGE = 20;
+    const auth = await getAuthContext();
+    const isAdmin = auth?.role === "ADMIN";
     
     const params = await searchParams;
     const query = params.query || "";
@@ -60,7 +63,7 @@ export default async function ExpensesPage({ searchParams }: PageProps) {
                     </Button>
                     
                     {/* Modal */}
-                    <ExpenseModal trucks={trucks} loads={activeLoadsForModal} />
+                    {isAdmin && <ExpenseModal trucks={trucks} loads={activeLoadsForModal} />}
                 </div>
             </div>
 
@@ -154,11 +157,15 @@ export default async function ExpensesPage({ searchParams }: PageProps) {
                                 </TableCell>
 
                                 <TableCell className="text-center">
-                                    <form action={deleteExpense.bind(null, expense.id)}>
-                                        <Button type="submit" variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-red-600 hover:bg-red-50">
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                    </form>
+                                    {isAdmin ? (
+                                        <form action={deleteExpense.bind(null, expense.id)}>
+                                            <Button type="submit" variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-red-600 hover:bg-red-50">
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </form>
+                                    ) : (
+                                        <span className="text-slate-300 text-xs">-</span>
+                                    )}
                                 </TableCell>
                             </TableRow>
                         ))}

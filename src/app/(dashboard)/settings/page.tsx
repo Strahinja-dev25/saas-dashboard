@@ -1,7 +1,14 @@
 import { CompanyService } from "@/services/company-service";
 import { SettingsForm } from "@/components/settings/settings-form";
+import { getAuthContext } from "@/lib/auth-service";
+import { redirect } from "next/navigation";
 
 export default async function SettingsPage() {
+    const auth = await getAuthContext();
+    if (auth?.role !== "ADMIN") {
+        redirect("/dashboard");
+    }
+
     const company = await CompanyService.getCompanyProfile();
 
     if (!company) {

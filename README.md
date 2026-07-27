@@ -114,6 +114,14 @@ This application has **no self-service sign-up**. Every dispatcher account must 
 
 > **Username uniqueness:** Usernames must be unique across the entire Clerk application. Two companies cannot share the same username (e.g. use `abc_jovan` and `xyz_jovan`).
 
+### 🔑 Role-Based Access Control (RBAC)
+
+The system features 3 distinct roles with explicit permission boundaries:
+
+1. **ADMIN**: Full access. Can manage company profile/settings, add/delete expenses, and view everything.
+2. **DISPATCHER**: Operational access. Can dispatch loads, assign drivers, and manage trucks. **Cannot** access Settings and **cannot** add or delete expenses (view-only).
+3. **DRIVER**: Restricted access. Drivers are immediately redirected to a standalone `Driver Portal` and cannot view the company dashboard.
+
 ### Step-by-step process
 
 #### 1. Ensure the company exists in the database

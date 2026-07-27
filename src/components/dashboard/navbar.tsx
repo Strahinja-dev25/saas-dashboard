@@ -6,15 +6,17 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { UserButton } from "@clerk/nextjs";
 import { DashboardService } from "@/services/dashboard-service";
 import { MobileSidebar } from "@/components/dashboard/mobile-sidebar";
+import { getAuthContext } from "@/lib/auth-service";
 
 export async function Navbar() {
     const companyInfo = await DashboardService.getCompanyInfo();
+    const auth = await getAuthContext();
 
     return (
         <header className="border-b bg-background h-16 shadow-sm">
             <div className="grid grid-cols-4 items-center h-full px-6 gap-4">
                 <div className="flex items-center gap-2">
-                    <MobileSidebar />
+                    <MobileSidebar role={auth?.role || "DISPATCHER"} />
                     <div className="bg-sky-600 p-1.5 rounded-lg hidden md:block">
                         <LayoutDashboard className="h-5 w-5 text-white" />
                     </div>
@@ -57,7 +59,7 @@ export async function Navbar() {
                     <div className="h-6 w-px bg-slate-200 mx-2 hidden sm:block"></div>
 
                     <div className="flex-col text-right hidden sm:flex">
-                        <span className="text-sm font-bold leading-none">System Admin</span>
+                        <span className="text-sm font-bold leading-none">{auth?.role === 'ADMIN' ? 'System Admin' : 'Dispatcher'}</span>
                         <span className="text-[10px] text-sky-600 font-bold uppercase mt-1">Authorized</span>
                     </div>
 

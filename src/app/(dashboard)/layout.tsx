@@ -1,11 +1,19 @@
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Navbar } from "@/components/dashboard/navbar";
+import { getAuthContext } from "@/lib/auth-service";
+import { redirect } from "next/navigation";
 
-export default function DashboardLayout({ children }: Readonly<{ children: React.ReactNode; }>) {
+export default async function DashboardLayout({ children }: Readonly<{ children: React.ReactNode; }>) {
+  const auth = await getAuthContext();
+
+  if (auth?.role === "DRIVER") {
+      redirect("/driver-portal");
+  }
+
   return (
     <div className="flex h-full">
       <div className="hidden md:flex">
-        <Sidebar />
+        <Sidebar role={auth?.role || "DISPATCHER"} />
       </div>
       <div className="flex flex-col flex-1 relative z-10 glass-panel ml-2 mr-2 my-2 rounded-2xl overflow-hidden">
         <Navbar />

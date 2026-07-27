@@ -17,3 +17,17 @@ export async function getCompanyId() {
 
     return dbUser?.companyId || null;
 }
+
+// Ova funkcija vraća sve podatke o ulogovanom korisniku iz baze (CompanyId, Role, ID)
+export async function getAuthContext() {
+    const user = await currentUser();
+    
+    if (!user) return null;
+
+    const dbUser = await db.user.findUnique({
+        where: { id: user.id },
+        select: { id: true, companyId: true, role: true }
+    });
+
+    return dbUser;
+}

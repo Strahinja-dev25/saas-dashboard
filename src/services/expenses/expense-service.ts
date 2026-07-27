@@ -80,6 +80,19 @@ export const ExpenseService = {
         if (!COMPANY_ID)
             throw new Error("Unauthorized: No company found for this user.");
 
+        // SECURITY FIX (IDOR): Provera da li truckId pripada trenutnoj firmi
+        if (data.truckId) {
+            const truck = await db.truck.findFirst({ where: { id: data.truckId, companyId: COMPANY_ID } });
+            if (!truck) throw new Error("Invalid truck or unauthorized access.");
+        }
+        
+        // SECURITY FIX (IDOR): Provera da li loadId pripada trenutnoj firmi
+        const finalLoadId = data.loadId === "none" ? null : data.loadId;
+        if (finalLoadId) {
+            const load = await db.load.findFirst({ where: { id: finalLoadId, companyId: COMPANY_ID } });
+            if (!load) throw new Error("Invalid load or unauthorized access.");
+        }
+
         return db.expense.create({
             data: {
                 amount: data.amount,
@@ -88,8 +101,7 @@ export const ExpenseService = {
                 date: data.date,
                 companyId: COMPANY_ID,
                 truckId: data.truckId,
-                // Logika "none" -> null
-                loadId: data.loadId === "none" ? null : data.loadId,
+                loadId: finalLoadId,
             }
         });
     },
