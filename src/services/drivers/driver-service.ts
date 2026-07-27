@@ -13,6 +13,7 @@ export const DriverService = {
 
         await db.driver.updateMany({
             where: {
+                companyId: COMPANY_ID,
                 isDriving: false,
                 updatedAt: { lt: tenHoursAgo },
                 hosAvailable: { lt: 11 }
@@ -132,6 +133,11 @@ export const DriverService = {
 
     // Menjanje vozaca. Edit stranica
     async updateDriver(id: string, data: any) {
+        const COMPANY_ID = await getCompanyId();
+        if (!COMPANY_ID) throw new Error("Unauthorized: No company found for this user.");
+
+        const driver = await db.driver.findFirst({ where: { id, companyId: COMPANY_ID } });
+        if (!driver) throw new Error("Driver not found or unauthorized.");
         if(data.eldStatus  === "DISCONNECTED")
         {
             await db.truck.updateMany({
@@ -151,6 +157,11 @@ export const DriverService = {
 
     // Brisanje vozaca
     async deleteDriver(id: string) {
+        const COMPANY_ID = await getCompanyId();
+        if (!COMPANY_ID) throw new Error("Unauthorized: No company found for this user.");
+
+        const driver = await db.driver.findFirst({ where: { id, companyId: COMPANY_ID } });
+        if (!driver) throw new Error("Driver not found or unauthorized.");
         // PROVERA (Edge Case): Proveri da li ovaj vozač vozi neki kamion
         const truckCount = await db.truck.count({ where: { driverId: id } });
         

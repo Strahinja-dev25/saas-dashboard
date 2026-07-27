@@ -96,6 +96,9 @@ export const ExpenseService = {
 
     // 4. Brisanje expense
     async deleteExpense(id: string) {
-        return db.expense.delete({ where: { id } });
+        const COMPANY_ID = await getCompanyId();
+        if (!COMPANY_ID) throw new Error("Unauthorized: No company found for this user.");
+
+        return db.expense.deleteMany({ where: { id, companyId: COMPANY_ID } });
     }
 };

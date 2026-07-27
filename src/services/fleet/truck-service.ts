@@ -105,6 +105,12 @@ export const TruckService = {
 
     // Menjanje kamiona. Edit stranica
     async updateTruck(id: string, data: any) {
+        const COMPANY_ID = await getCompanyId();
+        if (!COMPANY_ID) throw new Error("Unauthorized: No company found for this user.");
+
+        const existing = await db.truck.findFirst({ where: { id, companyId: COMPANY_ID } });
+        if (!existing) throw new Error("Truck not found or unauthorized.");
+
         let { driverId } = data;
 
         if (data.status === "MAINTENANCE" || data.status === "OUT_OF_SERVICE")
@@ -123,23 +129,32 @@ export const TruckService = {
 
     // Brisanje kamiona
     async deleteTruck(id: string) {
-        return db.truck.delete({ where: { id } });
+        const COMPANY_ID = await getCompanyId();
+        if (!COMPANY_ID) throw new Error("Unauthorized: No company found for this user.");
+
+        return db.truck.deleteMany({ where: { id, companyId: COMPANY_ID } });
     },
 
     // Menjanje u modalu
     async assignDriver(truckId: string, driverId: string | undefined) {
+        const COMPANY_ID = await getCompanyId();
+        if (!COMPANY_ID) throw new Error("Unauthorized: No company found for this user.");
+
         const isRemoving = !driverId || driverId === "unassigned";
+
+        const truck = await db.truck.findFirst({ where: { id: truckId, companyId: COMPANY_ID } });
+        if (!truck) throw new Error("Truck not found or unauthorized.");
 
         if (!isRemoving && driverId)
         {
-            const driver = await db.driver.findUnique({ where: { id: driverId } });
+            const driver = await db.driver.findFirst({ where: { id: driverId, companyId: COMPANY_ID } });
 
-            if(driver?.eldStatus === "DISCONNECTED")
+            if (!driver) throw new Error("Driver not found or unauthorized.");
+
+            if(driver.eldStatus === "DISCONNECTED")
                 throw new Error("ELD Violation: Driver is DISCONNECTED. Cannot assign to truck.");
-
-            const truck = await db.truck.findUnique({ where: { id: truckId } });
             
-            if (truck?.status === "MAINTENANCE" || truck?.status === "OUT_OF_SERVICE")
+            if (truck.status === "MAINTENANCE" || truck.status === "OUT_OF_SERVICE")
                 throw new Error("Unit is not currently available and cannot be assigned a driver.");
         }
 

@@ -9,8 +9,6 @@ import { LoadService } from "@/services/loads/load-service";
 import { LoadStatus } from "@prisma/client";
 import { ExpenseService } from "@/services/expenses/expense-service";
 
-// PRIVREMENO: Ovde staviti pravi ID firme iz baze
-const HARDCODED_COMPANY_ID = "firma-1"; 
 
 // Truck services
 export async function createTruck (rawData: any) {

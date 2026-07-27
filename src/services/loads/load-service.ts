@@ -85,9 +85,12 @@ export const LoadService = {
 
     // Menjanje ture i promena statusa
     async updateLoadStatus(loadId: string, newStatus: LoadStatus) {
+        const COMPANY_ID = await getCompanyId();
+        if (!COMPANY_ID) throw new Error("Unauthorized: No company found for this user.");
+
         // 1. Trenutno stanje ture
-        const load = await db.load.findUnique({ 
-            where: { id: loadId },
+        const load = await db.load.findFirst({ 
+            where: { id: loadId, companyId: COMPANY_ID },
             include: { truck: { include: { driver: true } } }
         });
 
@@ -190,7 +193,10 @@ export const LoadService = {
     },
 
     async updateLoadData(id: string, rawData: any) {
-        const load = await db.load.findUnique({ where: { id } });
+        const COMPANY_ID = await getCompanyId();
+        if (!COMPANY_ID) throw new Error("Unauthorized: No company found for this user.");
+
+        const load = await db.load.findFirst({ where: { id, companyId: COMPANY_ID } });
         
         if (!load)
             throw new Error("Load not found");
@@ -219,7 +225,10 @@ export const LoadService = {
 
     // Brisanje ture
     async deleteLoad(id: string) {
-        const load = await db.load.findUnique({ where: { id } });
+        const COMPANY_ID = await getCompanyId();
+        if (!COMPANY_ID) throw new Error("Unauthorized: No company found for this user.");
+
+        const load = await db.load.findFirst({ where: { id, companyId: COMPANY_ID } });
         
         if (load?.truckId && load.status === LoadStatus.IN_TRANSIT) {
             await db.truck.update({
