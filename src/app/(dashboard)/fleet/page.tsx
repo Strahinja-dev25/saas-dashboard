@@ -4,6 +4,7 @@ import { Plus, Trash2, Pencil, ArrowUpDown } from "lucide-react";
 
 import Link from "next/link";
 import { deleteTruck } from "@/lib/actions";
+import { SubmitAction } from "@/components/ui/submit-action";
 import { Search } from "@/components/dashboard/search";
 import { AssignDriverModal } from "@/components/fleet/assign-driver-modal";
 import { TruckService } from "@/services/fleet/truck-service";
@@ -140,11 +141,15 @@ export default async function FleetPage ({ searchParams }: PageProps) {
                                                 </Link>
                                             </Button>
 
-                                            <form action={deleteTruck.bind(null, truck.id)}>
-                                                <Button variant="ghost" size="icon" className="text-red-600 hover:text-red-700 hover:bg-red-100">
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
-                                            </form>
+                                            <SubmitAction 
+                                                action={deleteTruck.bind(null, truck.id)} 
+                                                successMessage="Kamion je uspešno izbrisan."
+                                                variant="ghost" 
+                                                size="icon" 
+                                                className="text-red-600 hover:text-red-700 hover:bg-red-100"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </SubmitAction>
                                         </div>
                                     </TableCell>
                                 </TableRow>
@@ -153,8 +158,12 @@ export default async function FleetPage ({ searchParams }: PageProps) {
 
                         {trucks.length === 0 && (
                             <TableRow>
-                                <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
-                                    No trucks found.
+                                <TableCell colSpan={6} className="text-center h-64 text-muted-foreground">
+                                    <div className="flex flex-col items-center justify-center gap-2">
+                                        <Truck className="h-10 w-10 text-slate-300 mb-2" />
+                                        <p className="font-medium text-slate-500">Još uvek nemate kamione.</p>
+                                        <p className="text-sm">Pritisnite dugme "Add Unit" iznad da dodate prvi kamion.</p>
+                                    </div>
                                 </TableCell>
                             </TableRow>
                         )}

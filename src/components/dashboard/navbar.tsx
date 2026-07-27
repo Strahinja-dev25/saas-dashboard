@@ -5,6 +5,7 @@ import { Search, Store, LayoutDashboard } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { UserButton } from "@clerk/nextjs";
 import { DashboardService } from "@/services/dashboard-service";
+import { MobileSidebar } from "@/components/dashboard/mobile-sidebar";
 
 export async function Navbar() {
     const companyInfo = await DashboardService.getCompanyInfo();
@@ -13,7 +14,8 @@ export async function Navbar() {
         <header className="border-b bg-background h-16 shadow-sm">
             <div className="grid grid-cols-4 items-center h-full px-6 gap-4">
                 <div className="flex items-center gap-2">
-                    <div className="bg-sky-600 p-1.5 rounded-lg">
+                    <MobileSidebar />
+                    <div className="bg-sky-600 p-1.5 rounded-lg hidden md:block">
                         <LayoutDashboard className="h-5 w-5 text-white" />
                     </div>
                     <span className="text-xl hidden lg:block">

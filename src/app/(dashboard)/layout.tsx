@@ -4,7 +4,9 @@ import { Navbar } from "@/components/dashboard/navbar";
 export default function DashboardLayout({ children }: Readonly<{ children: React.ReactNode; }>) {
   return (
     <div className="flex h-full">
-      <Sidebar />
+      <div className="hidden md:flex">
+        <Sidebar />
+      </div>
       <div className="flex flex-col flex-1 relative z-10 glass-panel ml-2 mr-2 my-2 rounded-2xl overflow-hidden">
         <Navbar />
 
