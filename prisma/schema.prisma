@@ -56,16 +56,16 @@ model Company {
 }
 
 model User {
-  id              String    @id @default(cuid())
-  email           String    @unique
+  id              String    @id // Ovo će biti Clerk User ID (npr. user_2abc...)
   name            String?
+  username        String    @unique
   role            UserRole  @default(DISPATCHER)
-
-  companyId       String
-  company         Company   @relation(fields: [companyId], references: [id])
   
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+
+  companyId       String
+  company         Company   @relation(fields: [companyId], references: [id])
 }
 
 model Truck {

@@ -8,10 +8,10 @@ export async function getCompanyId() {
     if (!user)
         return null; 
 
-    const email = user.emailAddresses[0].emailAddress;
+    const clerkId = user.id;
 
     const dbUser = await db.user.findUnique({
-        where: { email },
+        where: { id: clerkId },
         select: { companyId: true }
     });
 
