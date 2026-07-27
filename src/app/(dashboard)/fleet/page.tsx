@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Trash2, Pencil, ArrowUpDown } from "lucide-react";
+import { Plus, Trash2, Pencil, ArrowUpDown, Truck } from "lucide-react";
 
 import Link from "next/link";
 import { deleteTruck } from "@/lib/actions";

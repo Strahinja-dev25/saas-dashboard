@@ -45,6 +45,15 @@ enum ExpenseType {
 model Company {
   id              String    @id @default(cuid())
   name            String
+  taxId           String?
+  dotNumber       String?
+  mcNumber        String?
+  address         String?
+  cityState       String?
+  zipCode         String?
+  phone           String?
+  email           String?
+
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 

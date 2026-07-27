@@ -36,3 +36,16 @@ export const expenseSchema = z.object({
     truckId: z.string().min(1, "Please select a truck"),
     loadId: z.string().optional().or(z.literal("none")), // Ako je trošak van ture
 });
+
+// COMPANY SCHEMA
+export const companySchema = z.object({
+    name: z.string().min(2, "Company name is required"),
+    taxId: z.string().optional().nullable(),
+    dotNumber: z.string().optional().nullable(),
+    mcNumber: z.string().optional().nullable(),
+    address: z.string().optional().nullable(),
+    cityState: z.string().optional().nullable(),
+    zipCode: z.string().optional().nullable(),
+    phone: z.string().optional().nullable(),
+    email: z.string().email("Invalid email").optional().or(z.literal("")).nullable(),
+});

@@ -2,8 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { truckSchema, driverSchema, loadSchema, expenseSchema } from '@/lib/schemas/index';
+import { truckSchema, driverSchema, loadSchema, expenseSchema, companySchema } from '@/lib/schemas/index';
 import { TruckService } from "@/services/fleet/truck-service";
+import { CompanyService } from "@/services/company-service";
 import { DriverService } from "@/services/drivers/driver-service";
 import { LoadService } from "@/services/loads/load-service";
 import { LoadStatus } from "@prisma/client";
@@ -135,4 +136,15 @@ export async function deleteExpense(id: string) {
     await ExpenseService.deleteExpense(id);
 
     revalidatePath("/expenses");
+}
+
+// Company / Settings services
+export async function updateCompanySettings(rawData: any) {
+    // Ako je email ostavljen prazan, zod "email" ga odbija. Convert to null or empty string validacija je vec podesena u semi (.or(z.literal("")))
+    const validatedData = companySchema.parse(rawData);
+
+    await CompanyService.updateCompanyProfile(validatedData);
+
+    revalidatePath("/settings");
+    revalidatePath("/dashboard"); // u slucaju da se promenilo ime firme u navigaciji
 }
